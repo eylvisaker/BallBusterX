@@ -20,24 +20,22 @@
 */
 
 
+using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 
-using AgateLib;
-using AgateLib.Geometry;
-
-namespace BallBuster.Net
+namespace BallBusterX
 {
-	class CWorld
-	{
-		public CWorld()
-		{
-		}
+    public class CWorld
+    {
+        public CWorld()
+        {
+        }
 
-		public string name;
+        public string name;
 
-		public List<string> lvls = new List<string>();
-		public string background;
-		public Color light;
+        public List<string> lvls = new List<string>();
+        public string background;
+        public Color light;
 
-	}
+    }
 }

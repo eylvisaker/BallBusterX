@@ -19,61 +19,59 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+using AgateLib;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
 using System.Collections.Generic;
 
-using AgateLib;
-using AgateLib.AudioLib;
 
-namespace BallBuster.Net
+namespace BallBusterX
 {
-	class CSound
-	{
+    public class CSound
+    {
+        public SoundEffect bounce, shatter, powerup, ballfall, speedup, ching, die;
+        public List<Song> music = new List<Song>();
 
-		public SoundBuffer bounce, shatter, powerup, ballfall, speedup, ching, die;
-		public List<Music> music = new List<Music>();
+        public void load(IContentProvider content)
+        {
+            bounce = content.Load<SoundEffect>("snd/bounce");
+            shatter = content.Load<SoundEffect>("snd/break");
+            powerup = content.Load<SoundEffect>("snd/powerup");
+            ballfall = content.Load<SoundEffect>("snd/zoom");
+            speedup = content.Load<SoundEffect>("snd/speedup");
+            ching = content.Load<SoundEffect>("snd/ching");
+            die = content.Load<SoundEffect>("snd/die");
 
-
-
-		public void load()
-		{
-			bounce = new SoundBuffer("snd/bounce.wav");
-			shatter = new SoundBuffer("snd/break.wav");
-			powerup = new SoundBuffer("snd/powerup.wav");
-			ballfall = new SoundBuffer("snd/zoom.wav");
-			speedup = new SoundBuffer("snd/speedup.wav");
-			ching = new SoundBuffer("snd/ching.wav");
-			die = new SoundBuffer("snd/die.wav");
-
-			try
-			{
-				music.Add(new Music("snd/music/Rockin1.ogg"));
-				music.Add(new Music("snd/music/Rockin2.ogg"));
-				music.Add(new Music("snd/music/Grunge.ogg"));
-				music.Add(new Music("snd/music/Rave.ogg"));
-				music.Add(new Music("snd/music/FastDance.ogg"));
-				music.Add(new Music("snd/music/SweetDreams.ogg"));
-			}
-			catch
-			{
-				// can't read ogg files.
-			}
-		}
+            try
+            {
+                music.Add(content.Load<Song>("snd/music/Rockin1"));
+                music.Add(content.Load<Song>("snd/music/Rockin2"));
+                music.Add(content.Load<Song>("snd/music/Grunge"));
+                music.Add(content.Load<Song>("snd/music/Rave"));
+                music.Add(content.Load<Song>("snd/music/FastDance"));
+                music.Add(content.Load<Song>("snd/music/SweetDreams"));
+            }
+            catch
+            {
+                // can't read ogg files.
+            }
+        }
 
 
 
-		public void unload()
-		{
-			bounce.Dispose();
-			shatter.Dispose();
-			powerup.Dispose();
-			ballfall.Dispose();
-			speedup.Dispose();
-			ching.Dispose();
-			die.Dispose();
+        public void unload()
+        {
+            bounce.Dispose();
+            shatter.Dispose();
+            powerup.Dispose();
+            ballfall.Dispose();
+            speedup.Dispose();
+            ching.Dispose();
+            die.Dispose();
 
-			for (int i = 0; i < music.Count; i++)
-				music[i].Dispose();
-		}
+            for (int i = 0; i < music.Count; i++)
+                music[i].Dispose();
+        }
 
-	}
+    }
 }

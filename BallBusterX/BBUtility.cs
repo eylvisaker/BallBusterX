@@ -22,10 +22,7 @@
 using System;
 using System.Collections.Generic;
 
-using AgateLib.DisplayLib;
-using AgateLib.Geometry;
-
-namespace BallBuster.Net
+namespace BallBusterX
 {
 	static class BBUtility
 	{

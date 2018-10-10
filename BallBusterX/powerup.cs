@@ -19,294 +19,264 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
-using AgateLib;
-using AgateLib.DisplayLib;
-using AgateLib.Geometry;
-using AgateLib.DisplayLib.Sprites;
-using AgateLib.Platform;
+using System.Linq;
 
-namespace BallBuster.Net
+namespace BallBusterX
 {
-	class CPowerUp
-	{
-		public enum PowerupTypes
-		{
-			ONEUP = 'a',
-			BLASTER = 'b',
-			FASTBALL = 'c',
-			FIREBALL = 'd',
-			MULTIBALL = 'e',
-			PU3BALL = '3',
-			LARGEPADDLE = 'f',
-			REGULARPADDLE = 'g',
-			SMALLPADDLE = 'h',
-			NORMALSPEED = 'i',
-			SLOWBALL = 'j',
-			STICKY = 'k',
-			RESET = 'l',
-			PTS100 = 'm',
-			PTS250 = 'n',
-			PTS500 = 'o',
-			PTS1000 = 'p',
-			RANDOM = 'r',
-			CATCHBLUE = 's',
-			CATCHRED = 't',
-			SUPERSTICKY = 'u',
+    public class CPowerUp
+    {
+        public double delay;
+        public float w, h;
+        public float r, g, b, a;
+        public float x, y, vx, vy;
+        public float extray;
 
-			POW = 'P',
-			SMASH = 'W',
-			RBSWAP = 'S',
-			DOOR = 'D',
+        public Sprite icon;
 
-			PU_NONE = 'z'
-		};
-		public int start;
-		public int delay;
-		public float w, h;
-		public float r, g, b, a;
-		public float x, y, vx, vy;
-		public float extray;
+        public CPowerUp(float myx, float myy)
+        {
+            this.delay = 100;
+            this.w = this.h = 1.0f;
+            this.r = this.g = this.b = 1.0f;
+            this.a = 1.0f;
 
-		public ISprite icon;
+            this.x = myx;
+            this.y = myy;
+            this.extray = y;
 
-		public CPowerUp(float myx, float myy)
-		{
-			this.start = (int)(int)Timing.TotalMilliseconds;
-			this.delay = 100;
-			this.w = this.h = 1.0f;
-			this.r = this.g = this.b = 1.0f;
-			this.a = 1.0f;
+            this.vx = 0.0f;
+            this.vy = 100.0f;
 
-			this.x = myx;
-			this.y = myy;
-			this.extray = y;
+            this.isred = this.isblue = false;
+        }
 
-			this.vx = 0.0f;
-			this.vy = 100.0f;
+        public virtual bool update(GameTime time)
+        {
+            float time_ms = (float)time.ElapsedGameTime.TotalMilliseconds;
 
-			this.isred = this.isblue = false;
-		}
+            if (this.effect != PowerupTypes.PU_NONE)
+            {
+                // we'll set the effect to z when the player attains the power up
+                this.y += vy * time_ms;
+                this.x += vx * time_ms;
+                this.extray = this.y;
 
-		public virtual bool update(float time_ms)
-		{
-			if (this.effect != PowerupTypes.PU_NONE)
-			{
-				// we'll set the effect to z when the player attains the power up
-				this.y += vy * time_ms;
-				this.x += vx * time_ms;
-				this.extray = this.y;
+                //if ((unsigned)this.delay + start < (int)Timing.TotalMilliseconds)
+                //{
+                this.vy += 300.0f * time_ms;
 
-				//if ((unsigned)this.delay + start < (int)Timing.TotalMilliseconds)
-				//{
-				this.vy += 300.0f * time_ms;
+                //	this.start= (int)Timing.TotalMilliseconds;
+                //}
+                if (this.y > 600) return false;
+                return true;
+            }
 
-				//	this.start= (int)Timing.TotalMilliseconds;
-				//}
-				if (this.y > 600) return false;
-				return true;
-			}
+            this.delay -= time.ElapsedGameTime.TotalMilliseconds;
 
-			if (this.delay + start < (int)Timing.TotalMilliseconds)
-			{
-				this.w += 0.06f;
-				this.x -= 0.03f * icon.SpriteWidth;
-				this.h -= 0.03f;
-				//		this.r-= 0.03f;
-				this.a -= 0.03f;
-				this.y -= vy * time_ms;
-				this.x += vx * time_ms;
-				this.extray -= (vy * 1.5f) * time_ms;
+            if (this.delay > 0)
+            {
+                this.w += 0.06f;
+                this.x -= 0.03f * icon.SpriteWidth;
+                this.h -= 0.03f;
+                //		this.r-= 0.03f;
+                this.a -= 0.03f;
+                this.y -= vy * time_ms;
+                this.x += vx * time_ms;
+                this.extray -= (vy * 1.5f) * time_ms;
 
 
-				if (this.a <= 0.0f) return false;
-			}
+                if (this.a <= 0.0f) return false;
+            }
 
-			return true;
-		}
-		public Color Color
-		{
-			get
-			{
-				return Color.FromArgb(
-					(int)(a * 255.0f),
-					(int)(r * 255.0f),
-					(int)(g * 255.0f),
-					(int)(b * 255.0f));
-			}
-		}
-		public void setEffect(CPowerUp.PowerupTypes neweffect)
-		{
-			oldeffect = effect;
-			effect = neweffect;
+            return true;
+        }
+        public Color Color
+        {
+            get
+            {
+                return new Color(
+                    (int)(r * 255.0f),
+                    (int)(g * 255.0f),
+                    (int)(b * 255.0f),
+                    (int)(a * 255.0f)
+                    );
+            }
+        }
 
-			/*
-				CPowerUp.PowerupTypes.ONEUP = 'a',
-			CPowerUp.PowerupTypes.BLASTER = 'b',
-			CPowerUp.PowerupTypes.FASTBALL = 'c',
-			CPowerUp.PowerupTypes.FIREBALL = 'd',
-			CPowerUp.PowerupTypes.MULTIBALL = 'e',
-			CPowerUp.PowerupTypes.LARGEPADDLE = 'f',
-			CPowerUp.PowerupTypes.REGULARPADDLE = 'g',
-			CPowerUp.PowerupTypes.SMALLPADDLE = 'h',
-			CPowerUp.PowerupTypes.NORMALSPEED = 'i',
-			CPowerUp.PowerupTypes.SLOWBALL = 'j',
-			CPowerUp.PowerupTypes.STICKY = 'k',
-			CPowerUp.PowerupTypes.RESET = 'l',
-			CPowerUp.PowerupTypes.PTS100 = 'm',
-			CPowerUp.PowerupTypes.PTS250 = 'n',
-			CPowerUp.PowerupTypes.PTS500 = 'o',
-			CPowerUp.PowerupTypes.PTS1000 = 'p',
-			CPowerUp.PowerupTypes.RANDOM = 'r',
-			CPowerUp.PowerupTypes.CATCHBLUE = 's',
-			CPowerUp.PowerupTypes.CATCHRED = 't',
-			*/
-			switch (effect)
-			{
-				case CPowerUp.PowerupTypes.RANDOM:
+        public void setEffect(PowerupTypes neweffect)
+        {
+            oldeffect = effect;
+            effect = neweffect;
 
-					isred = isblue = true;
-					break;
+            switch (effect)
+            {
+                case PowerupTypes.RANDOM:
 
-				case CPowerUp.PowerupTypes.FASTBALL:
-				case CPowerUp.PowerupTypes.SMALLPADDLE:
-				case CPowerUp.PowerupTypes.CATCHRED:
-				case CPowerUp.PowerupTypes.BLASTER:
+                    isred = isblue = true;
+                    break;
 
-					isred = true;
-					break;
+                case PowerupTypes.FASTBALL:
+                case PowerupTypes.SMALLPADDLE:
+                case PowerupTypes.CATCHRED:
+                case PowerupTypes.BLASTER:
 
-				case CPowerUp.PowerupTypes.MULTIBALL:
-				case CPowerUp.PowerupTypes.PU3BALL:
-				case CPowerUp.PowerupTypes.LARGEPADDLE:
-				case CPowerUp.PowerupTypes.SLOWBALL:
-				case CPowerUp.PowerupTypes.STICKY:
-				case CPowerUp.PowerupTypes.PTS100:
-				case CPowerUp.PowerupTypes.PTS250:
-				case CPowerUp.PowerupTypes.PTS500:
-				case CPowerUp.PowerupTypes.CATCHBLUE:
-				case CPowerUp.PowerupTypes.POW:
+                    isred = true;
+                    break;
 
-					isblue = true;
-					break;
+                case PowerupTypes.MULTIBALL:
+                case PowerupTypes.PU3BALL:
+                case PowerupTypes.LARGEPADDLE:
+                case PowerupTypes.SLOWBALL:
+                case PowerupTypes.STICKY:
+                case PowerupTypes.PTS100:
+                case PowerupTypes.PTS250:
+                case PowerupTypes.PTS500:
+                case PowerupTypes.CATCHBLUE:
+                case PowerupTypes.POW:
 
-				case PowerupTypes.DOOR:
-					this.vy = 0;
+                    isblue = true;
+                    break;
 
-					break;
+                case PowerupTypes.DOOR:
+                    this.vy = 0;
 
-			}
+                    break;
 
-		}
-		public CPowerUp.PowerupTypes getEffect()
-		{
-			return effect;
-		}
+            }
 
-		public bool isRed() { return isred; }
-		public bool isBlue() { return isblue; }
+        }
+        public PowerupTypes getEffect()
+        {
+            return effect;
+        }
 
-		public CPowerUp.PowerupTypes oldeffect;
+        public bool isRed() { return isred; }
+        public bool isBlue() { return isblue; }
 
-
-		CPowerUp.PowerupTypes effect;
-		bool isred, isblue;
+        public PowerupTypes oldeffect;
+        private PowerupTypes effect;
+        private bool isred, isblue;
 
 
 
-	}
+    }
 
-	class CPowerUpList
-	{
-		public CPowerUpList()
-		{
-			total = 0;
-		}
+    internal class CPowerUpList
+    {
+        public CPowerUpList()
+        {
+            total = 0;
+        }
 
-		~CPowerUpList()
-		{
-			clear();
-		}
+        public void clear()
+        {
+            data.Clear();
 
+            total = 0;
+        }
 
+        public void addEffect(PowerupTypes effect, Sprite icon, int weight)
+        {
+            PUData pudata = new PUData(effect, icon, weight);
 
+            total += weight;
 
-		public void clear()
-		{
-			data.Clear();
+            data.Add(pudata);
 
-			total = 0;
-		}
+        }
 
-		public void addEffect(CPowerUp.PowerupTypes effect, ISprite icon, int weight)
-		{
-			PUData pudata = new PUData(effect, icon, weight);
+        public void removeEffect(PowerupTypes effect)
+        {
+            for (int i = 0; i < data.Count; i++)
+            {
+                if (data[i].effect == effect)
+                {
+                    total -= data[i].weight;
 
-			total += weight;
+                    //delete data[i];
+                    data.RemoveAt(i);
+                }
 
-			data.Add(pudata);
+            }
+        }
 
-		}
+        public void AssignPowerup(out CPowerUp powerup, float x, float y, Random random)
+        {
+            int roll = random.Next(data.Sum(d => d.weight));
+            PUData sel = null;
 
-		public void removeEffect(CPowerUp.PowerupTypes effect)
-		{
-			for (int i = 0; i < data.Count; i++)
-			{
-				if (data[i].effect == effect)
-				{
-					total -= data[i].weight;
+            roll %= total;
 
-					//delete data[i];
-					data.RemoveAt(i);
-				}
+            for (int i = 0; i < data.Count; i++)
+            {
+                roll -= data[i].weight;
 
-			}
-		}
+                if (roll < 0)
+                {
+                    sel = data[i];
+                    break;
+                }
 
-		public void AssignPowerup(out CPowerUp powerup, float x, float y)
-		{
-			int start = (int)(int)Timing.TotalMilliseconds;
-			PUData sel = null;
-
-			start %= total;
-
-			for (int i = 0; i < data.Count; i++)
-			{
-				start -= data[i].weight;
-
-				if (start < 0)
-				{
-					sel = data[i];
-					break;
-				}
-
-			}
+            }
 
 
-			powerup = new CPowerUp(x, y);
-			powerup.setEffect(sel.effect);
-			powerup.icon = sel.icon;
+            powerup = new CPowerUp(x, y);
+            powerup.setEffect(sel.effect);
+            powerup.icon = sel.icon;
 
-		}
+        }
 
+        private class PUData
+        {
+            public PUData(PowerupTypes myeffect, Sprite myicon, int myweight)
+            {
+                effect = myeffect;
+                icon = myicon;
+                weight = myweight;
+            }
 
-		class PUData
-		{
-			public PUData(CPowerUp.PowerupTypes myeffect, ISprite myicon, int myweight)
-			{
-				effect = myeffect;
-				icon = myicon;
-				weight = myweight;
-			}
+            public PowerupTypes effect;
+            public Sprite icon;
+            public int weight;
 
-			public CPowerUp.PowerupTypes effect;
-			public ISprite icon;
-			public int weight;
+        };
 
-		};
+        private List<PUData> data = new List<PUData>();
+        private int total;
+    }
 
-		List<PUData> data = new List<PUData>();
+    public enum PowerupTypes
+    {
+        ONEUP = 'a',
+        BLASTER = 'b',
+        FASTBALL = 'c',
+        FIREBALL = 'd',
+        MULTIBALL = 'e',
+        PU3BALL = '3',
+        LARGEPADDLE = 'f',
+        REGULARPADDLE = 'g',
+        SMALLPADDLE = 'h',
+        NORMALSPEED = 'i',
+        SLOWBALL = 'j',
+        STICKY = 'k',
+        RESET = 'l',
+        PTS100 = 'm',
+        PTS250 = 'n',
+        PTS500 = 'o',
+        PTS1000 = 'p',
+        RANDOM = 'r',
+        CATCHBLUE = 's',
+        CATCHRED = 't',
+        SUPERSTICKY = 'u',
 
-		int total;
-	}
+        POW = 'P',
+        SMASH = 'W',
+        RBSWAP = 'S',
+        DOOR = 'D',
+
+        PU_NONE = 'z'
+    };
 }

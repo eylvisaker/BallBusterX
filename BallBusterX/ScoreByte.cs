@@ -19,72 +19,72 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-using AgateLib.DisplayLib;
-using AgateLib.Geometry;
+using AgateLib.Display;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace BallBuster.Net
+namespace BallBusterX
 {
-	class CScoreByte
-	{
-		string amount;
+    public class CScoreByte
+    {
+        private string amount;
+        private float x, y;
+        private float vx, vy;
+        private float alpha;
+        private double scale;
+        private Color mClr;
+        private Font font;
 
-		float x, y;
-		float vx, vy;
-		float alpha;
-		double scale;
+        public string getAmount() { return amount; }
 
-		Color mClr;
+        public float getAlpha() { return alpha; }
+        public int getx
+        {
+            get { return (int)(x); }
+        }
+        public int gety
+        {
+            get
+            { return (int)(y); }
+        }
 
-		Surface image;
+        public Font Font => font;
+        public Color getColor() { return mClr; }
 
-		public string getAmount() { return amount; }
+        public CScoreByte(int myx, int myy, string myamount, Font font, Color clr, double scale)
+        {
+            alpha = 1.0f;
 
-		public float getAlpha() { return alpha; }
-		public int getx
-		{
-			get { return (int)(x); }
-		}
-		public int gety
-		{
-			get
-			{ return (int)(y); }
-		}
+            x = myx;
+            y = myy;
+            amount = myamount;
 
-		public Surface getImage() { return image; }
-		public Color getColor() { return mClr; }
+            vy = -40;
+            vx = 0;
 
-		public CScoreByte(int myx, int myy, string myamount, Surface myimage, Color clr, double scale)
-		{
-			alpha = 1.0f;
+            this.font = font;
 
-			x = (float)(myx);
-			y = (float)(myy);
-			amount = myamount;
+            mClr = clr;
 
-			vy = -40;
-			vx = 0;
+            this.scale = scale;
+        }
 
-			image = myimage;
+        public void update(GameTime time)
+        {
+            var time_s = (float)time.ElapsedGameTime.TotalSeconds;
 
-			mClr = clr;
+            x += vx * time_s;
+            y += vy * time_s;
 
-			this.scale = scale;
-		}
+            if (y < 10)
+                y = 10;
 
-		public void update(float time_s)
-		{
-			x += vx * time_s;
-			y += vy * time_s;
+            alpha -= 1.0f * time_s;
+        }
 
-			if (y < 10)
-				y = 10;
-
-			alpha -= 1.0f * time_s;
-		}
-
-		public double Scale
-		{
-			get { return scale; }
-		}
-	}
+        public double Scale
+        {
+            get { return scale; }
+        }
+    }
 }

@@ -20,77 +20,62 @@
 */
 
 
+using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 
-using AgateLib;
-using AgateLib.DisplayLib;
-using AgateLib.Geometry;
-using AgateLib.DisplayLib.Sprites;
-using AgateLib.Platform;
-
-namespace BallBuster.Net
+namespace BallBusterX
 {
-	internal struct CBlockPart
-	{
+    public class CBlockPart
+    {
+        public float alpha; // particle will fade away. When alpha is 0.0f it is deleted from queque
+        public float rotation; // particle spins while flying away
+        public float rotVelocity; // rotational velocity
 
+        public Vector2 velocity; 
+        public Vector2 position;
 
-		public float alpha; // particle will fade away. When alpha is 0.0f it is deleted from queque
-		public float rotation; // particle spins while flying away
-		public float rotVelocity; // rotational velocity
+        public Color mClr;
 
-		public int start, delay; // will be used for recalculating velocity dependent on elapsed time
+        public Sprite block; // which block part to use;
 
-		public float vx, vy; // velocity(speed) for x and y axes
-		public float x, y;
+        public CBlockPart(float myvx, float myvy, float myx, float myy, Sprite myblock, Color clr, Random random)
+            : this(new Vector2(myvx, myvy), new Vector2(myx, myy), myblock, clr, random)
+        { }
 
-		public Color mClr;
+        public CBlockPart(Vector2 velocity, Vector2 position, Sprite myblock, Color clr, Random random)
+        {
+            this.velocity = velocity;
+            this.position = position;
 
-		public ISprite block; // which block part to use;
+            this.alpha = 1.0f;
+            this.rotation = 0;
 
-		public CBlockPart(float myvx, float myvy, float myx, float myy, ISprite myblock, Color clr)
-		{
+            this.block = myblock;
+            this.mClr = clr;
 
-			this.vx = myvx;
-			this.vy = myvy;
+            this.rotVelocity = (360.0f + random.Next(-180, 541));
+        }
 
-			this.alpha = 1.0f;
-			this.rotation = 0;
+        public bool update(GameTime time)
+        {
+            float time_s = (float)time.ElapsedGameTime.TotalSeconds;
 
-			this.start = (int)Timing.TotalMilliseconds;
-			this.delay = 10;
+            this.position += this.velocity * time_s;
 
-			this.x = myx;
-			this.y = myy;
+            this.alpha -= 2.0f * time_s;
 
-			this.block = myblock;
-			this.mClr = clr;
+            if (this.position.X < 0)
+                this.rotation -= rotVelocity * time_s;
+            else if (!(this.position.X < 0))
+                this.rotation += rotVelocity * time_s;
 
-			this.rotVelocity = (360.0f + BBX.random.Next(-180, 541));
-		}
+            this.velocity.Y += 2500.0f * time_s;
 
-		public bool update(float time_s)
-		{
+            if (this.alpha < 0.0f)
+                return false;
+            else
+                return true;
+        }
 
-			this.x += this.vx * time_s;
-			this.y += this.vy * time_s;
-
-			this.alpha -= 2.0f * time_s;
-
-			if (this.x < 0)
-				this.rotation -= rotVelocity * time_s;
-			else if (!(this.x < 0))
-				this.rotation += rotVelocity * time_s;
-
-			this.vy += 2500.0f * time_s;
-
-			if (this.alpha < 0.0f)
-				return false;
-			else
-				return true;
-
-
-		}
-
-	}
+    }
 }

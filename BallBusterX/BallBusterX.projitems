@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>469aba2f-7194-4f89-a9eb-98fe940e4290</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>BallBusterX</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ball.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BBUtility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BBX.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BBXConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)block.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)blockpart.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CImage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ContentDataModel\SpritesFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CSound.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)fadeball.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)flash.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Highscore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)powerup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\EditorScene.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\GameScene.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\SplashScene.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\TitleScene.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\LevelCompleteScene.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ScoreByte.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SettingsFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sprite.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)World.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WorldCollection.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)app.config" />
+    <MonoGameContentReference Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
+    <None Include="$(MSBuildThisFileDirectory)highscores">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

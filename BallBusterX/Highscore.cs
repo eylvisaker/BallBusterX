@@ -21,56 +21,56 @@
 
 using System;
 
-namespace BallBuster.Net
+namespace BallBusterX
 {
-	class Highscore : IComparable<Highscore>
-	{
-		public string name = "";
-		public int score;
+    public class Highscore : IComparable<Highscore>
+    {
+        public string name = "";
+        public int score;
 
-		public Highscore()
-		{
-			score = 0;
-		}
-		public Highscore(string name, int score)
-		{
-			this.name = name;
-			this.score = score;
-		}
-		public Highscore(string buffer)
-		{
-			int i;
-			for (i = 0; i < buffer.Length; i++)
-			{
-				if (buffer[i] == ',')
-					break;
-			}
+        public Highscore()
+        {
+            score = 0;
+        }
+        public Highscore(string name, int score)
+        {
+            this.name = name;
+            this.score = score;
+        }
+        public Highscore(string buffer)
+        {
+            int i;
+            for (i = 0; i < buffer.Length; i++)
+            {
+                if (buffer[i] == ',')
+                    break;
+            }
 
-			if (i == buffer.Length)
-				throw new Exception("Failed to read high score data.");
-
-
-			name = buffer.Substring(0, i);
-			score = int.Parse(buffer.Substring(i + 1));
+            if (i == buffer.Length)
+                throw new Exception("Failed to read high score data.");
 
 
-		}
-
-		public override string ToString()
-		{
-			return string.Format("{0},{1}", name, score);
-		}
+            name = buffer.Substring(0, i);
+            score = int.Parse(buffer.Substring(i + 1));
 
 
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0},{1}", name, score);
+        }
 
 
-		#region IComparable<CHighscore> Members
 
-		public int CompareTo(Highscore other)
-		{
-			return score.CompareTo(other.score);
-		}
 
-		#endregion
-	}
+        #region IComparable<CHighscore> Members
+
+        public int CompareTo(Highscore other)
+        {
+            return score.CompareTo(other.score);
+        }
+
+        #endregion
+    }
 }

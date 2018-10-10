@@ -19,65 +19,68 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+using Microsoft.Xna.Framework;
 using System;
 
-namespace BallBuster.Net
+namespace BallBusterX
 {
-	internal class CFadeBall
-	{
-		public CFadeBall(CBall ball)
-		{
-			alpha = 0.75f;
+    public class CFadeBall
+    {
+        public CFadeBall(CBall ball, Random random)
+        {
+            alpha = 0.75f;
 
-			x = ball.ballx;
-			y = ball.bally;
+            x = ball.ballx;
+            y = ball.bally;
 
-			angle = ball.Ballangle;
+            angle = ball.Ballangle;
 
-			vx = vy = 0;
+            vx = vy = 0;
 
-			scale = 1.0f;
-			scaleV = -6.0f;
+            scale = 1.0f;
+            scaleV = -6.0f;
 
-			const int max = 45;
+            const int max = 45;
 
-			vx = (float)BBX.random.Next(-max, max + 1);
-			vy = (float)BBX.random.Next(-max, max + 1);
+            vx = random.Next(-max, max + 1);
+            vy = random.Next(-max, max + 1);
 
-			if (ball.ballsticking)
-				vy += -45;
+            if (ball.ballsticking)
+                vy += -45;
 
-		}
+        }
 
-		public float x, y;
-		public float angle;
+        public float x, y;
+        public float angle;
 
-		public float vx, vy;
-		public float scale;
-		public float scaleV;
+        public float vx, vy;
+        public float scale;
+        public float scaleV;
 
-		public float alpha;
+        public float alpha;
 
-		public bool update(float time_s)
-		{
-			alpha -= 9.0f * time_s;
-			scale += scaleV * time_s;
+        public bool update(GameTime time)
+        {
+            var time_s = (float)time.ElapsedGameTime.TotalSeconds;
 
-			if (alpha < 0 || scale <= 0)
-			{
-				alpha = 0;
-				scale = 0;
+            alpha -= 9.0f * time_s;
+            scale += scaleV * time_s;
 
-				return false;
-			}
+            if (alpha < 0 || scale <= 0)
+            {
+                alpha = 0;
+                scale = 0;
 
-			x += vx * time_s;
-			y += vy * time_s;
+                return false;
+            }
 
-
-			return true;
-		}
+            x += vx * time_s;
+            y += vy * time_s;
 
 
-	}
+            return true;
+        }
+
+
+    }
 }

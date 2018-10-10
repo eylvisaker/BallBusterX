@@ -19,36 +19,41 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-using AgateLib;
-using AgateLib.DisplayLib;
-using AgateLib.Platform;
+using Microsoft.Xna.Framework;
 
-namespace BallBuster.Net
+namespace BallBusterX
 {
-	internal class CFlash
-	{
-		public CFlash(int myx, int myy)
-		{
-			this.alpha = 0.8f;
-			this.x = (float)myx;
-			this.y = (float)myy;
-			this.delay = 25;
-			this.start = (int)Timing.TotalMilliseconds;
-		}
+    public class CFlash
+    {
+        const float life = 125;
 
-		public float x, y, alpha;
-		public int start, delay;
-		public bool update()
-		{
-			if ((int)Timing.TotalMilliseconds > (this.start + this.delay))
-			{
-				this.start = (int)Timing.TotalMilliseconds;
-				this.alpha -= 0.2f;
-				if (this.alpha < 0) return false;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="myx"></param>
+        /// <param name="myy"></param>
+        /// <param name="start">Was (int)Timing.TotalMilliseconds;</param>
+        public CFlash(int myx, int myy)
+        {
+            this.alpha = 0.8f;
+            this.x = myx;
+            this.y = myy;
+            this.lifeLeft = life;
+        }
 
-			}
-			return true;
+        public float x, y, alpha;
+        public float lifeLeft;
 
-		}
-	}
+        public bool update(GameTime time)
+        {
+            lifeLeft -= (float)time.ElapsedGameTime.TotalMilliseconds;
+
+            this.alpha = lifeLeft / life;
+
+            if (this.alpha < 0) return false;
+
+            return true;
+
+        }
+    }
 }

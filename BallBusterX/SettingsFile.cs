@@ -24,9 +24,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using AgateLib.IO;
 
-namespace BallBuster.Net
+namespace BallBusterX
 {
 	class SetValStruct
 	{
@@ -76,10 +75,14 @@ namespace BallBuster.Net
 		//
 		//	Return Value:	none  
 		//
-		public CSettingsFile(string fileName)
+		public CSettingsFile(string text)
 			: this()
 		{
-			OpenFile(fileName);
+            mData = text;
+            ParseFile();
+
+            if (!IsValid)
+                throw new ArgumentException("Invalid settings file");
 		}
 
 		///////////////////////////////////////////////////////////////////////////////////////////
@@ -143,18 +146,20 @@ namespace BallBuster.Net
 		{
 			mFileName = fileName;
 
-			using (StreamReader infile = new StreamReader(Assets.OpenRead(fileName)))
-			{
+            return false;
 
-				mIsValid = false;
+			//using (StreamReader infile = new StreamReader(Assets.OpenRead(fileName)))
+			//{
 
-				mData = infile.ReadToEnd();
+			//	mIsValid = false;
 
-				ParseFile();
+			//	mData = infile.ReadToEnd();
+
+			//	ParseFile();
 
 
-				return IsValid;
-			}
+			//	return IsValid;
+			//}
 		}
 
 		public void Save()

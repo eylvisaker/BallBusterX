@@ -19,179 +19,182 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-using AgateLib;
-using AgateLib.DisplayLib;
-using AgateLib.Geometry;
-using AgateLib.Platform;
-using AgateLib.DisplayLib.Sprites;
+using Microsoft.Xna.Framework;
+using System;
 
-namespace BallBuster.Net
+namespace BallBusterX
 {
-	internal class CBlock
-	{
-		private int str;
-		private int originalStr;
+    public class CBlock
+    {
+        private int str;
+        private int originalStr;
+
+        private double liveTime;
+
+        public float x, y, w, h;
+
+        public enum BlockType
+        {
+            Glass,
+            Wood,
+            Stone,
+            Invincible,
+            Ruby,
+
+            Invalid = -1,
+        };
+
+        public Sprite block;
+
+        /// <summary>
+        /// 
+        /// </summary>
+		public CBlock(Random random)
+        {
+            x = y = 0.0f;
+            w = 40.0f;
+            h = 20.0f;
+
+            this.str = 100;
+            this.block = null;
+
+            mBlockType = BlockType.Invalid;
+
+            this.random = random;
+            flipcrack = false;
+
+            offsety = 0;
+
+            shaking = false;
+
+        }
+        public bool collision(float myx, float myy, float myw, float myh)
+        {
+
+            if (myx + myw < x) return false;
+            if (myx > x + w) return false;
+            if (myy + myh < y + offsety) return false;
+            if (myy > y + h + offsety) return false;
+
+            return true;
+
+        }
+
+        // "Color" of block... the value read from the input file for this block.
+        public char color;
+
+        public int getStr() { return str; }
+        public void setStr(int strength) { originalStr = str = strength; }
+
+        public void decreaseStr(int amount) { str -= amount; }
+
+        public void setCoords(float myx, float myy) { x = myx; y = myy; }
+
+        public BlockType mBlockType;
+
+        public Color clr;
+        public bool flipcrack;
+
+        public int animShift;
+        private readonly Random random;
+        public float offsety;
 
 
+        public bool shaking;
+        private int frame;
+        public float shakeTimeLeft;
 
-		public float x, y, w, h;
+        public float crackPercentage()
+        {
+            // I want a function that is linear, and it returns 
+            //		0 when str = originalStr
+            //		1 when str = 50
+            // varies linearly with str in between
+            var retVal = (originalStr - 50 - str) / (float)originalStr;
 
-		public enum BlockType
-		{
-			Glass,
-			Wood,
-			Stone,
-			Invincible,
-			Ruby,
+            if (retVal < 0)
+                retVal = 0;
+            if (retVal > 1.0f)
+                retVal = 1.0f;
 
-			Invalid = -1,
-		};
+            return retVal;
+        }
 
-		public ISprite block;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="">was (int)Timing.TotalMilliseconds</param>
+		public void Update(GameTime time)
+        {
+            liveTime += time.ElapsedGameTime.TotalMilliseconds;
 
-		public CBlock()
-		{
+            int mytime = (int)(animShift + liveTime);
+            const int frameTime = 40;
 
-			x = y = 0.0f;
-			w = 40.0f;
-			h = 20.0f;
+            if (shaking)
+            {
+                shakeTimeLeft -= (float)time.ElapsedGameTime.TotalMilliseconds;
 
-			this.str = 100;
-			this.block = null;
+                if (shakeTimeLeft <= 0)
+                {
+                    shaking = false;
+                }
+            }
 
-			mBlockType = BlockType.Invalid;
-
-			animStart = (int)Timing.TotalMilliseconds - 1000;
-
-			flipcrack = false;
-
-			offsety = 0;
-
-			shaking = false;
-
-		}
-		public bool collision(float myx, float myy, float myw, float myh)
-		{
-
-			if (myx + myw < x) return false;
-			if (myx > x + w) return false;
-			if (myy + myh < y + offsety) return false;
-			if (myy > y + h + offsety) return false;
-
-			return true;
-
-		}
-
-		// "Color" of block... the value read from the input file for this block.
-		public char color;
-
-		public int getStr() { return str; }
-		public void setStr(int strength) { originalStr = str = strength; }
-
-		public void decreaseStr(int amount) { str -= amount; }
-
-		public void setCoords(float myx, float myy) { x = myx; y = myy; }
-
-		public BlockType mBlockType;
-
-		public Color clr;
-		public bool flipcrack;
-
-		public int animShift;
-		public int animStart;
-
-		public float offsety;
+            if (mytime > 5000)
+            {
+                liveTime = 0;
+            }
 
 
-		public bool shaking;
-		public int shakeStart;
-
-		int frame;
+            int newframe = (mytime / frameTime) % block.Frames.Count;
 
 
-		public float crackPercentage()
-		{
-			// I want a function that is linear, and it returns 
-			//		0 when str = originalStr
-			//		1 when str = 50
-			// varies linearly with str in between
-			var retVal = (originalStr - 50 - str) / (float)originalStr;
+            frame = newframe;
 
-			if (retVal < 0)
-				retVal = 0;
-			if (retVal > 1.0f)
-				retVal = 1.0f;
+            block.CurrentFrameIndex = frame;
 
-			return retVal;
-		}
+        }
 
-		public void setFrame()
-		{
-			int realtime = (int)Timing.TotalMilliseconds;
-			int time = animShift + realtime;
-			const int frameTime = 40;
-
-			if (time > animStart + 5000)
-			{
-				animStart = time;
-			}
-
-
-			int newframe = ((time - animStart) / frameTime) % block.Frames.Count;
-
-
-			frame = newframe;
-
-			block.CurrentFrameIndex = frame;
-
-		}
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="shakeStart">was (int)Timing.TotalMilliseconds;</param>
 		public void shake()
-		{
-			shaking = true;
-			shakeStart = (int)Timing.TotalMilliseconds;
+        {
+            shaking = true;
+            shakeTimeLeft = 300;
+        }
 
-		}
-
-		const int shakeMagnitude = 2;
-
-
-		public float getx()
-		{
-			return getx(true);
-		}
-		public float getx(bool allowShake)
-		{
-			if (shaking && allowShake)
-				return x + BBX.random.Next(-shakeMagnitude, shakeMagnitude + 1);
-			else
-				return x;
-
-		}
-		public float gety()
-		{
-			return gety(true);
-		}
-		public float gety(bool allowShake)
-		{
-			if (shaking && allowShake)
-				return y + offsety + BBX.random.Next(-shakeMagnitude, shakeMagnitude + 1);
-			else
-				return y + offsety;
-		}
-
-		public float Height
-		{
-			get
-			{ return h; }
-		}
-		public float Width
-		{
-			get
-
-			{ return w; }
-		}
+        private const int shakeMagnitude = 2;
 
 
-	}
+        public float getx()
+        {
+            return getx(true);
+        }
+
+        public float getx(bool allowShake)
+        {
+            if (shaking && allowShake)
+                return x + random.Next(-shakeMagnitude, shakeMagnitude + 1);
+            else
+                return x;
+
+        }
+        public float gety()
+        {
+            return gety(true);
+        }
+        public float gety(bool allowShake)
+        {
+            if (shaking && allowShake)
+                return y + offsety + random.Next(-shakeMagnitude, shakeMagnitude + 1);
+            else
+                return y + offsety;
+        }
+
+        public float Height => h;
+        public float Width => w;
+    }
 }

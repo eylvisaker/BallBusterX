@@ -1,5 +1,6 @@
 ﻿using AgateLib;
 using AgateLib.Display;
+using AgateLib.Display.Sprites;
 using AgateLib.Mathematics.Geometry;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -17,6 +18,7 @@ namespace BallBusterX
         private const float maxPaddleImbueV = 1000.0f;
         private const float minPaddleImbueV = 200.0f;
         private bool doLighting = true;
+        public const int ballLimit = 100;
 
         /// <summary>
         /// Total time this level has been running in milliseconds.
@@ -33,9 +35,6 @@ namespace BallBusterX
         //public float fps;
         public float time_s;
 
-        public int beginningWorld;
-        public int beginningLevel;
-        public bool beginningChanged;
         public int powerupLeft = 0;
         public int powerupTop = 0;
 
@@ -98,7 +97,6 @@ namespace BallBusterX
         public int powerupcount;
         public int ballslost;
 
-        public int ballLimit;
         public int blockPartLimit;
         public int scoreByteLimit;
 
@@ -151,7 +149,7 @@ namespace BallBusterX
         public WorldCollection worlds;
         public List<Highscore> highscores = new List<Highscore>();
 
-
+        public Vector2 PaddlePos => new Vector2(paddlex, paddley);
 
         public GameState(GraphicsDevice device, CImage img, CSound snd, IContentProvider content, WorldCollection worlds)
         {
@@ -271,7 +269,7 @@ namespace BallBusterX
 
         }
 
-        public void updateLevel(GameTime time)
+        public void UpdateLevel(GameTime time)
         {
             img.paddle.Update(time);
             img.smallpaddle.Update(time);
@@ -834,11 +832,11 @@ namespace BallBusterX
                 pad = img.largepaddle;
             }
 
-            pad.SetScale(paddlealpha, paddlealpha);
+            pad.Scale = new Vector2(paddlealpha, paddlealpha);
             pad.Alpha = paddlealpha;
-            pad.RotationCenter = OriginAlignment.Center;
+            pad.SetRotationCenter(OriginAlignment.Center);
             pad.RotationAngleDegrees = paddlerot;
-            pad.Draw(spriteBatch, (int)paddlex, (int)paddley);
+            pad.Draw(spriteBatch, PaddlePos);
 
             DrawPowerUps(spriteBatch);
             DrawScoreBytes(spriteBatch);
@@ -871,23 +869,23 @@ namespace BallBusterX
                     y = bally - 3;
 
                     img.spike.DisplayAlignment = OriginAlignment.TopLeft;
-                    img.spike.RotationCenter = OriginAlignment.Center;
+                    img.spike.SetRotationCenter(OriginAlignment.Center);
 
                     for (int k = 0; k < spikes; k++)
                     {
                         img.spike.RotationAngleDegrees = myball.Ballangle + angle * k;
-                        img.spike.Draw(spriteBatch, x, y);
+                        img.spike.Draw(spriteBatch, new Vector2(x, y));
                     }
                 }
 
-                ballimg.Draw(spriteBatch, ballx, bally);
+                ballimg.Draw(spriteBatch, new Vector2(ballx, bally));
 
                 if (myball.smash)
                 {
                     float offset = myball.ballw / 2 - img.smash.SpriteWidth / 2;
 
                     img.smash.RotationAngleDegrees = myball.SmashAngle;
-                    img.smash.Draw(spriteBatch, ballx + offset, bally + offset);
+                    img.smash.Draw(spriteBatch, new Vector2(ballx + offset, bally + offset));
                 }
             }
 
@@ -917,7 +915,7 @@ namespace BallBusterX
             int ilives;
             for (ilives = 0; ilives < lives; ilives++)
             {
-                img.ball.Draw(spriteBatch, 775 - (ilives * 13), 588);
+                img.ball.Draw(spriteBatch, new Vector2(775 - (ilives * 13), 588));
             }
 
             // Draw powerups that are in effect:
@@ -958,7 +956,7 @@ namespace BallBusterX
                 }
 
                 if (!attractMode)
-                    img.arrow.Draw(spriteBatch, mousex, mousey);
+                    img.arrow.Draw(spriteBatch, new Vector2(mousex, mousey));
             }
         }
 
@@ -1153,16 +1151,16 @@ namespace BallBusterX
                 {
                     CBlockPart part = blockparts[i];
 
-                    part.block.SetScale(0.5f, 0.5f);
+                    part.block.Scale = new Vector2(0.5f, 0.5f);
                     part.block.RotationAngleDegrees = part.rotation;
 
                     part.block.Color = part.mClr;
                     part.block.Alpha = part.alpha;
 
-                    part.block.Draw(spriteBatch, (int)part.position.X, (int)part.position.Y);
+                    part.block.Draw(spriteBatch, part.position);
 
                     part.block.RotationAngleDegrees = 0;
-                    part.block.SetScale(1.0f, 1.0f);
+                    part.block.Scale = new Vector2(1.0f, 1.0f);
                 }
             }
         }
@@ -1208,8 +1206,7 @@ namespace BallBusterX
                 for (int i = 0; i < flashes.Count; i++)
                 {
                     img.flash.Alpha = (flashes[i].alpha);
-                    img.flash.Draw(spriteBatch, (int)flashes[i].x, (int)flashes[i].y);
-
+                    img.flash.Draw(spriteBatch, flashes[i].position);
                 }
             }
         }
@@ -2025,14 +2022,14 @@ namespace BallBusterX
                 CPowerUp mypowerup = powerups[i];
 
                 mypowerup.icon.Color = mypowerup.Color;
-                mypowerup.icon.SetScale(mypowerup.w, mypowerup.h);
-                mypowerup.icon.Draw(spriteBatch, (int)mypowerup.x, (int)mypowerup.y);
+                mypowerup.icon.Scale = new Vector2(mypowerup.w, mypowerup.h);
+                mypowerup.icon.Draw(spriteBatch, mypowerup.position);
 
                 if (mypowerup.oldeffect == PowerupTypes.RANDOM)
                 {
                     img.purandom.Color = mypowerup.Color;
-                    img.purandom.SetScale(mypowerup.h, mypowerup.h);
-                    img.purandom.Draw(spriteBatch, (int)mypowerup.x, (int)mypowerup.extray);
+                    img.purandom.Scale = new Vector2(mypowerup.h, mypowerup.h);
+                    img.purandom.Draw(spriteBatch, mypowerup.position);
                 }
             }
         }
@@ -2085,13 +2082,13 @@ namespace BallBusterX
 
                 img.fireball.Alpha = fb.alpha;
                 img.fireball.RotationAngleDegrees = fb.angle;
-                img.fireball.SetScale(fb.scale, fb.scale);
+                img.fireball.Scale = new Vector2(fb.scale, fb.scale);
 
-                img.fireball.Draw(spriteBatch,(int)fb.x, (int)fb.y);
+                img.fireball.Draw(spriteBatch, fb.position);
             }
 
             img.fireball.Alpha = 1.0f;
-            img.fireball.SetScale(1.0f, 1.0f);
+            img.fireball.Scale = new Vector2(1.0f, 1.0f);
         }
 
         private void deleteFadeBall(int id)
@@ -2402,7 +2399,7 @@ namespace BallBusterX
                     CBlock myblock = blocks[i];
 
                     myblock.block.Color = myblock.clr;
-                    myblock.block.Draw(spriteBatch, (int)myblock.getx(), (int)myblock.gety());
+                    myblock.block.Draw(spriteBatch, myblock.position);
 
                     crack = myblock.crackPercentage();
 
@@ -2414,12 +2411,12 @@ namespace BallBusterX
 
 
                         img.crack.Alpha = (crack);
-                        img.crack.SetScale(crack / 2, vscale);
+                        img.crack.Scale = new Vector2(crack / 2, vscale);
 
-                        img.crack.Draw(spriteBatch, (int)(myblock.getx()/* + cwidth*/), (int)myblock.gety());
+                        img.crack.Draw(spriteBatch, myblock.position);
 
-                        img.crack.SetScale(crack / 2, vscale);
-                        img.crack.Draw(spriteBatch, (int)myblock.getx() + (int)(40 * (1 - crack / 2)), (int)myblock.gety());
+                        img.crack.Scale = new Vector2(crack / 2, vscale);
+                        img.crack.Draw(spriteBatch, new Vector2((int)myblock.getx() + (int)(40 * (1 - crack / 2)), (int)myblock.gety()));
                     }
                 }
             }

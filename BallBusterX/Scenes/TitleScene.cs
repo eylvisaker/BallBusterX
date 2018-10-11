@@ -22,6 +22,7 @@ namespace BallBusterX.Scenes
         private readonly GameScene attractMode;
         private readonly MouseEvents mouse;
         private readonly Font font;
+        private readonly Texture2D whiteTexture;
         private double clock;
         private float time_s;
         private GameState game;
@@ -29,9 +30,13 @@ namespace BallBusterX.Scenes
         private int mousex;
         private int mousey;
         private bool hideTitle;
+        private int beginningWorld;
+        private int beginningLevel;
+        private bool beginningChanged;
 
-        public TitleScene(GraphicsDevice graphicsDevice, 
-                          IContentProvider content, 
+        public TitleScene(GraphicsDevice graphicsDevice,
+                          IContentProvider content,
+                          IMouseEventsFactory mouseEventsFactory,
                           CImage img, 
                           CSound snd, 
                           BBXConfig config)
@@ -48,16 +53,71 @@ namespace BallBusterX.Scenes
             this.worlds = new WorldCollection();
             this.worlds.LoadWorlds(content);
 
-            this.mouse = new MouseEvents();
+            this.mouse = mouseEventsFactory.CreateMouseEvents();
 
             mouse.MouseMove += Mouse_MouseMove;
+            mouse.MouseUp += Mouse_MouseUp;
 
             font = new Font(img.Fonts.Default);
+            whiteTexture = content.Load<Texture2D>("imgs/white");
+        }
+
+        private void Mouse_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (hideTitle)
+            {
+                hideTitle = false;
+                timeSinceMouseMove = 0;
+
+                return;
+            }
+            if (mousex > 100 - 20 && mousex < 500 && mousey > 100 && mousey < 130)
+            {
+                var gameScene = new GameScene(
+                    new GameState(graphicsDevice, img, snd, content, worlds)
+                    {
+                        world = beginningWorld,
+                        level = beginningLevel,
+                    });
+
+                SceneStack.Add(gameScene);
+            }
+
+            //if (mousex > 100 - 20 && mousex < 500 && mousey > 130 && mousey < 160)
+            //{
+            //    titlemode = "leveleditor";
+            //}
+            if (mousex > 100 - 20 && mousex < 500 && mousey > 160 && mousey < 190)
+            {
+                SceneStack.Remove(this);
+            }
+            if (mousex > 100 - 20 && mousex < 500 && mousey > 190 && mousey < 220)
+            {
+                return;
+            }
+            if (mousex > 100 - 20 && mousex < 500 && mousey > 220 && mousey < 250)
+            {
+                config.BackgroundScroll = !config.BackgroundScroll;
+                game.bgspeed = config.BackgroundScroll ? 50.0f : 0.0f;
+            }
+            if (mousex > 100 - 20 && mousex < 500 && mousey > 250 && mousey < 280)
+            {
+                //vsync = !vsync;
+
+                //Display.RenderState.WaitForVerticalBlank = vsync;
+            }
+            if (mousex > 100 - 20 && mousex < 500 && mousey > 280 && mousey < 320)
+            {
+                config.PlayMusic = !config.PlayMusic;
+            }
+
         }
 
         private void Mouse_MouseMove(object sender, MouseEventArgs e)
         {
             timeSinceMouseMove = 0;
+            hideTitle = false;
+
             mousex = e.MousePosition.X;
             mousey = e.MousePosition.Y;
         }
@@ -90,9 +150,9 @@ namespace BallBusterX.Scenes
 
             hideTitle = false;
 
-            game.beginningWorld = 0;
-            game.beginningLevel = 0;
-            game.beginningChanged = false;
+            beginningWorld = 0;
+            beginningLevel = 0;
+            beginningChanged = false;
         }
 
         protected override void OnUpdate(GameTime time)
@@ -104,8 +164,8 @@ namespace BallBusterX.Scenes
 
             mouse.Update(time);
 
-            game.updateLevel(time);
-            updateTitle(time);
+            game.UpdateLevel(time);
+            UpdateTitle(time);
 
 
             if (timeSinceMouseMove > 15000)
@@ -115,12 +175,12 @@ namespace BallBusterX.Scenes
             if (game.blocks.Count <= game.uncountedBlocks
                 || game.balls.Count == 0
                 || game.leveltime > 100000
-                || game.beginningChanged)
+                || beginningChanged)
             {
-                if (game.beginningChanged)
+                if (beginningChanged)
                 {
-                    game.world = game.beginningWorld;
-                    game.level = game.beginningLevel;
+                    game.world = beginningWorld;
+                    game.level = beginningLevel;
                 }
                 else
                 {
@@ -133,14 +193,14 @@ namespace BallBusterX.Scenes
                 game.attractMode = true;
                 game.attractvelocity = 0;
 
-                if (game.beginningChanged)
+                if (beginningChanged)
                 {
                     // update incase we went past the number of levels
-                    game.beginningLevel = game.level;
-                    game.beginningWorld = game.world;
+                    beginningLevel = game.level;
+                    beginningWorld = game.world;
                 }
 
-                game.beginningChanged = false;
+                beginningChanged = false;
             }
 
             //if (titlemode == "quit")
@@ -176,7 +236,7 @@ namespace BallBusterX.Scenes
 
         }
 
-        private void updateTitle(GameTime time)
+        private void UpdateTitle(GameTime time)
         {
             var time_s = (float)time.ElapsedGameTime.TotalSeconds;
 
@@ -230,11 +290,11 @@ namespace BallBusterX.Scenes
             if (!hideTitle)
             {
                 FillRect(
-                    new Rectangle(95, 95, 800, 322),
+                    new Rectangle(0, 95, 800, 322),
                     new Color(0, 0, 0, 100)
                     );
 
-                font.Size = 24;
+                font.Size = 20;
 
                 font.Color = Color.White;
                 if (mousex > 100 - 20 && mousex < 500 && mousey > 100 && mousey < 130)
@@ -298,9 +358,9 @@ namespace BallBusterX.Scenes
 
                 }
 
-                img.bblogo.Draw(spriteBatch, 40, 350);
+                img.bblogo.Draw(spriteBatch, new Vector2(40, 350));
                 img.xlogo.Update(time);
-                img.xlogo.Draw(spriteBatch, 640, 350);
+                img.xlogo.Draw(spriteBatch, new Vector2(640, 350));
 
                 font.Size = 14;
                 font.Color = Color.White;
@@ -324,18 +384,21 @@ namespace BallBusterX.Scenes
             }
 
             font.Size = 14;
-            font.DrawText(spriteBatch, 100, 500, $"Starting on level {(game.beginningWorld + 1)} - {game.beginningLevel + 1}");
+            font.DrawText(spriteBatch, 100, 500, $"Starting on level {(beginningWorld + 1)} - {beginningLevel + 1}");
 
 
             if (!hideTitle)
             {
                 // Draw cursor
-                img.arrow.Draw(spriteBatch, mousex, mousey);
+                img.arrow.Draw(spriteBatch, new Vector2(mousex, mousey));
             }
 
 
         }
 
-        private void FillRect(Rectangle rectangle, Color color) => throw new NotImplementedException();
+        private void FillRect(Rectangle rectangle, Color color)
+        {
+            spriteBatch.Draw(whiteTexture, rectangle, color);
+        }
     }
 }

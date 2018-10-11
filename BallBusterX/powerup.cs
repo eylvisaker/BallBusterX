@@ -19,6 +19,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+using AgateLib.Display.Sprites;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -31,8 +32,8 @@ namespace BallBusterX
         public double delay;
         public float w, h;
         public float r, g, b, a;
-        public float x, y, vx, vy;
         public float extray;
+        public Vector2 position, velocity;
 
         public Sprite icon;
 
@@ -43,15 +44,19 @@ namespace BallBusterX
             this.r = this.g = this.b = 1.0f;
             this.a = 1.0f;
 
-            this.x = myx;
-            this.y = myy;
-            this.extray = y;
+            this.position = new Vector2(myx, myy);
+            this.velocity = new Vector2(0, 100);
 
-            this.vx = 0.0f;
-            this.vy = 100.0f;
+            this.extray = this.position.Y;
 
             this.isred = this.isblue = false;
         }
+
+        public float x => position.X;
+        public float y => position.Y;
+
+        public float vx { get => velocity.X; set => velocity.X = value; }
+        public float vy { get => velocity.Y; set => velocity.Y = value; }
 
         public virtual bool update(GameTime time)
         {
@@ -60,17 +65,17 @@ namespace BallBusterX
             if (this.effect != PowerupTypes.PU_NONE)
             {
                 // we'll set the effect to z when the player attains the power up
-                this.y += vy * time_ms;
-                this.x += vx * time_ms;
-                this.extray = this.y;
+                this.position.Y += this.velocity.Y * time_ms;
+                this.position.X += this.velocity.X * time_ms;
+                this.extray = this.position.Y;
 
                 //if ((unsigned)this.delay + start < (int)Timing.TotalMilliseconds)
                 //{
-                this.vy += 300.0f * time_ms;
+                this.velocity.Y += 300.0f * time_ms;
 
                 //	this.start= (int)Timing.TotalMilliseconds;
                 //}
-                if (this.y > 600) return false;
+                if (this.velocity.Y > 600) return false;
                 return true;
             }
 
@@ -79,13 +84,13 @@ namespace BallBusterX
             if (this.delay > 0)
             {
                 this.w += 0.06f;
-                this.x -= 0.03f * icon.SpriteWidth;
+                this.position.X -= 0.03f * icon.SpriteWidth;
                 this.h -= 0.03f;
                 //		this.r-= 0.03f;
                 this.a -= 0.03f;
-                this.y -= vy * time_ms;
-                this.x += vx * time_ms;
-                this.extray -= (vy * 1.5f) * time_ms;
+                this.position.Y -= velocity.Y * time_ms;
+                this.position.X += velocity.X * time_ms;
+                this.extray -= (velocity.Y * 1.5f) * time_ms;
 
 
                 if (this.a <= 0.0f) return false;
@@ -141,7 +146,7 @@ namespace BallBusterX
                     break;
 
                 case PowerupTypes.DOOR:
-                    this.vy = 0;
+                    this.velocity.Y = 0;
 
                     break;
 

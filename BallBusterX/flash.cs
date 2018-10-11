@@ -36,12 +36,12 @@ namespace BallBusterX
         public CFlash(int myx, int myy)
         {
             this.alpha = 0.8f;
-            this.x = myx;
-            this.y = myy;
+            this.position = new Vector2(myx, myy);
             this.lifeLeft = life;
         }
 
-        public float x, y, alpha;
+        public Vector2 position;
+        public float alpha;
         public float lifeLeft;
 
         public bool update(GameTime time)

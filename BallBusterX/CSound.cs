@@ -32,7 +32,7 @@ namespace BallBusterX
         public SoundEffect bounce, shatter, powerup, ballfall, speedup, ching, die;
         public List<Song> music = new List<Song>();
 
-        public void load(IContentProvider content)
+        public void Load(IContentProvider content)
         {
             bounce = content.Load<SoundEffect>("snd/bounce");
             shatter = content.Load<SoundEffect>("snd/break");
@@ -56,22 +56,5 @@ namespace BallBusterX
                 // can't read ogg files.
             }
         }
-
-
-
-        public void unload()
-        {
-            bounce.Dispose();
-            shatter.Dispose();
-            powerup.Dispose();
-            ballfall.Dispose();
-            speedup.Dispose();
-            ching.Dispose();
-            die.Dispose();
-
-            for (int i = 0; i < music.Count; i++)
-                music[i].Dispose();
-        }
-
     }
 }

@@ -25,12 +25,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)powerup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\EditorScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\GameScene.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\MouseEventsFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\SplashScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\TitleScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\LevelCompleteScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ScoreByte.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SettingsFile.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Sprite.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)World.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WorldCollection.cs" />
   </ItemGroup>

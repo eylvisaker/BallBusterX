@@ -14,21 +14,30 @@ namespace BallBusterX
         private GraphicsDevice graphicsDevice;
         private ContentProvider content;
         private readonly CImage img;
+        private readonly CSound snd;
         private SceneStack scenes = new SceneStack();
 
-        public BBX(GraphicsDevice graphicsDevice, ContentProvider content)
+        public BBX(GraphicsDevice graphicsDevice, GameWindow window, ContentProvider content)
         {
             this.graphicsDevice = graphicsDevice;
             this.content = content;
 
             img = new CImage();
+            snd = new CSound();
 
-            scenes.Add(new SplashScene(graphicsDevice, content, img));
+            scenes.Add(new SplashScene(graphicsDevice, new MouseEventsFactory(graphicsDevice, window), content, img, snd));
         }
+
+        public event Action NoMoreScenes;
 
         public void Update(GameTime gameTime)
         {
             scenes.Update(gameTime);
+
+            if (scenes.Count == 0)
+            {
+                NoMoreScenes?.Invoke();
+            }
         }
 
         public void Draw(GameTime gameTime)

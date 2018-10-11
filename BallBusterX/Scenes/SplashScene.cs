@@ -13,19 +13,23 @@ namespace BallBusterX.Scenes
     public class SplashScene : Scene
     {
         private GraphicsDevice graphicsDevice;
+        private readonly IMouseEventsFactory mouseEventsFactory;
         private ContentProvider content;
         private readonly CImage img;
+        private readonly CSound snd;
         private readonly SpriteBatch spriteBatch;
         private readonly IContentLayout textLayout;
         private readonly double initialDelay;
         private double delay = 500;
+        private bool loaded;
 
-        public SplashScene(GraphicsDevice graphicsDevice, ContentProvider content, CImage img)
+        public SplashScene(GraphicsDevice graphicsDevice, IMouseEventsFactory mouseEventsFactory, ContentProvider content, CImage img, CSound snd)
         {
             this.graphicsDevice = graphicsDevice;
+            this.mouseEventsFactory = mouseEventsFactory;
             this.content = content;
             this.img = img;
-
+            this.snd = snd;
             this.spriteBatch = new SpriteBatch(graphicsDevice);
 
             img.preload(content);
@@ -54,9 +58,12 @@ namespace BallBusterX.Scenes
         {
             base.OnUpdate(time);
 
-            if (delay < initialDelay)
+            if (delay < initialDelay && !loaded)
             {
                 img.load(content);
+                snd.Load(content);
+
+                loaded = true;
             }
 
             delay -= time.ElapsedGameTime.TotalMilliseconds;
@@ -64,7 +71,8 @@ namespace BallBusterX.Scenes
             if (delay < 0)
             {
                 IsFinished = true;
-                SceneStack.Add(new TitleScene(graphicsDevice, content, img, new CSound(), new BBXConfig()));
+                SceneStack.Add(new TitleScene(graphicsDevice, content, mouseEventsFactory, img, snd, new BBXConfig()));
+                SceneStack.Remove(this);
             }
         }
 
@@ -74,8 +82,8 @@ namespace BallBusterX.Scenes
 
             spriteBatch.Begin();
 
-            spriteBatch.Draw(img.palogo, new Vector2(235, 100), Color.White);
-            spriteBatch.Draw(img.vtlogo, new Vector2(435, 100), Color.White);
+            spriteBatch.Draw(img.palogo, new Vector2(165, 100), Color.White);
+            spriteBatch.Draw(img.vtlogo, new Vector2(365, 100), Color.White);
 
             textLayout.Draw(new Vector2(175, 250), spriteBatch);
                 

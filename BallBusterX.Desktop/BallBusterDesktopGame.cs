@@ -36,7 +36,9 @@ namespace BallBusterX.Desktop
         {
             base.Initialize();
 
-            bbx = new BBX(graphics.GraphicsDevice, new ContentProvider(Content));
+            bbx = new BBX(graphics.GraphicsDevice, Window, new ContentProvider(Content));
+
+            bbx.NoMoreScenes += Exit;
         }
 
         /// <summary>

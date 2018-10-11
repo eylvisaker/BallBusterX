@@ -20,6 +20,7 @@
 */
 
 
+using AgateLib.Display.Sprites;
 using Microsoft.Xna.Framework;
 using System;
 

@@ -59,6 +59,9 @@ namespace BallBusterX
 
         public float alpha;
 
+        public Vector2 position => new Vector2(x, y);
+        public Vector2 velocity => new Vector2(vx, vy);
+
         public bool update(GameTime time)
         {
             var time_s = (float)time.ElapsedGameTime.TotalSeconds;

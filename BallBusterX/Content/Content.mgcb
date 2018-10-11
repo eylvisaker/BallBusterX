@@ -16,6 +16,18 @@
 #begin sprites.yaml
 /copy:sprites.yaml
 
+#begin imgs/white.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:imgs/white.png
+
 #begin imgs/arrow.png
 /importer:TextureImporter
 /processor:TextureProcessor

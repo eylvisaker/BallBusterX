@@ -19,6 +19,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+using AgateLib.Display.Sprites;
 using Microsoft.Xna.Framework;
 using System;
 
@@ -56,7 +57,6 @@ namespace BallBusterX
             h = 20.0f;
 
             this.str = 100;
-            this.block = null;
 
             mBlockType = BlockType.Invalid;
 
@@ -68,6 +68,9 @@ namespace BallBusterX
             shaking = false;
 
         }
+
+        public Vector2 position => new Vector2(x, y);
+
         public bool collision(float myx, float myy, float myw, float myh)
         {
 

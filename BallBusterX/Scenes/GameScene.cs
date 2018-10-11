@@ -1,10 +1,17 @@
-﻿using System;
+﻿using AgateLib.Scenes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace BallBusterX.Scenes
 {
-    class GameScene
+    public class GameScene : Scene
     {
+        private GameState gameState;
+
+        public GameScene(GameState gameState)
+        {
+            this.gameState = gameState;
+        }
     }
 }

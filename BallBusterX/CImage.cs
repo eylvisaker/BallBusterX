@@ -20,6 +20,7 @@
 */
 using AgateLib;
 using AgateLib.Display;
+using AgateLib.Display.Sprites;
 using AgateLib.UserInterface;
 using BallBusterX.ContentDataModel;
 using Microsoft.Xna.Framework.Graphics;
@@ -111,14 +112,13 @@ namespace BallBusterX
                         var sprite = new Sprite();
 
                         sprite.AnimationType = data.Animation?.Type ?? sprite.AnimationType;
-                        sprite.FrameTime = data.Animation?.FrameTime ?? sprite.FrameTime;
+                        sprite.FrameTime = TimeSpan.FromMilliseconds(data.Animation?.FrameTime ?? sprite.FrameTime.TotalMilliseconds);
 
                         foreach (var frameData in data.Frames)
                         {
-                            var frame = new SpriteFrame();
-
-                            frame.Image = content.Load<Texture2D>($"imgs/{frameData.Image}");
-                            frame.SourceRect = frameData.SourceRect;
+                            var frame = new SpriteFrame(
+                                content.Load<Texture2D>($"imgs/{frameData.Image}"),
+                                frameData.SourceRect);
 
                             sprite.AddFrame(frame);
                         }

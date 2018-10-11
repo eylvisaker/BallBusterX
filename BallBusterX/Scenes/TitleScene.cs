@@ -13,6 +13,7 @@ namespace BallBusterX.Scenes
     {
         private readonly GraphicsDevice graphicsDevice;
         private readonly IContentProvider content;
+        private readonly IGameStateFactory gameStateFactory;
         private readonly CImage img;
         private readonly CSound snd;
         private readonly BBXConfig config;
@@ -20,7 +21,7 @@ namespace BallBusterX.Scenes
         private readonly Random random;
         private readonly WorldCollection worlds;
         private readonly GameScene attractMode;
-        private readonly MouseEvents mouse;
+        private readonly IMouseEvents mouse;
         private readonly Font font;
         private readonly Texture2D whiteTexture;
         private double clock;
@@ -36,13 +37,16 @@ namespace BallBusterX.Scenes
 
         public TitleScene(GraphicsDevice graphicsDevice,
                           IContentProvider content,
-                          IMouseEventsFactory mouseEventsFactory,
+                          IMouseEvents mouse,
+                          IGameStateFactory gameStateFactory,
                           CImage img, 
                           CSound snd, 
+                          WorldCollection worlds,
                           BBXConfig config)
         {
             this.graphicsDevice = graphicsDevice;
             this.content = content;
+            this.gameStateFactory = gameStateFactory;
             this.img = img;
             this.snd = snd;
             this.config = config;
@@ -50,10 +54,10 @@ namespace BallBusterX.Scenes
 
             this.random = new Random();
 
-            this.worlds = new WorldCollection();
+            this.worlds = worlds;
             this.worlds.LoadWorlds(content);
 
-            this.mouse = mouseEventsFactory.CreateMouseEvents();
+            this.mouse = mouse;
 
             mouse.MouseMove += Mouse_MouseMove;
             mouse.MouseUp += Mouse_MouseUp;
@@ -61,6 +65,8 @@ namespace BallBusterX.Scenes
             font = new Font(img.Fonts.Default);
             whiteTexture = content.Load<Texture2D>("imgs/white");
         }
+
+        public event Action<GameState> BeginGame;
 
         private void Mouse_MouseUp(object sender, MouseButtonEventArgs e)
         {
@@ -73,14 +79,11 @@ namespace BallBusterX.Scenes
             }
             if (mousex > 100 - 20 && mousex < 500 && mousey > 100 && mousey < 130)
             {
-                var gameScene = new GameScene(
-                    new GameState(graphicsDevice, img, snd, content, worlds)
-                    {
-                        world = beginningWorld,
-                        level = beginningLevel,
-                    });
+                GameState gameState = gameStateFactory.CreateGameState();
+                gameState.world = beginningWorld;
+                gameState.level = beginningLevel;
 
-                SceneStack.Add(gameScene);
+                BeginGame?.Invoke(gameState);
             }
 
             //if (mousex > 100 - 20 && mousex < 500 && mousey > 130 && mousey < 160)
@@ -135,7 +138,7 @@ namespace BallBusterX.Scenes
                     MediaPlayer.Play(song);
             }
 
-            game = new GameState(graphicsDevice, img, snd, content, worlds);
+            game = gameStateFactory.CreateGameState();
 
             game.lives = 2;
             game.thescore = 0;
@@ -263,7 +266,7 @@ namespace BallBusterX.Scenes
             //if (session != null && !session.IsPlaying && playmusic) session.Play();
             spriteBatch.Begin();
 
-            game.DrawLevel(spriteBatch, img);
+            game.DrawLevel(spriteBatch);
             DrawTitle(spriteBatch, time);
 
             spriteBatch.End();
@@ -362,7 +365,7 @@ namespace BallBusterX.Scenes
                 img.xlogo.Update(time);
                 img.xlogo.Draw(spriteBatch, new Vector2(640, 350));
 
-                font.Size = 14;
+                font.Size = 12;
                 font.Color = Color.White;
 
                 font.DrawText(spriteBatch, 100, 540, "Ball: Buster, by Patrick Avella (C) 2004");
@@ -392,8 +395,6 @@ namespace BallBusterX.Scenes
                 // Draw cursor
                 img.arrow.Draw(spriteBatch, new Vector2(mousex, mousey));
             }
-
-
         }
 
         private void FillRect(Rectangle rectangle, Color color)

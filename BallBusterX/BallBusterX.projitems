@@ -25,7 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)powerup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\EditorScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\GameScene.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Scenes\MouseEventsFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\GameStateFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\SplashScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\TitleScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\LevelCompleteScene.cs" />

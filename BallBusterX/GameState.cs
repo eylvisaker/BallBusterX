@@ -32,18 +32,16 @@ namespace BallBusterX
 
         public int levelChange;
 
-        //public float fps;
-        public float time_s;
-
         public int powerupLeft = 0;
         public int powerupTop = 0;
 
         public bool stickypaddle;
         public bool supersticky;
+
         public bool catchblue, catchred;
         public bool pow, smash;
         public bool fireball, blaster, stageover, transitionout, died, dying;
-        public bool bgscroll, playmusic;
+        public bool playmusic;
 
         public int ballStickCount;
 
@@ -147,19 +145,47 @@ namespace BallBusterX
         //List<CEnemy>			enemies;
 
         public WorldCollection worlds;
+        private readonly BBXConfig config;
         public List<Highscore> highscores = new List<Highscore>();
 
         public Vector2 PaddlePos => new Vector2(paddlex, paddley);
 
-        public GameState(GraphicsDevice device, CImage img, CSound snd, IContentProvider content, WorldCollection worlds)
+        public GameState(GraphicsDevice device, CImage img, CSound snd, IContentProvider content, WorldCollection worlds, BBXConfig config)
         {
             this.device = device;
             this.img = img;
             this.snd = snd;
             this.content = content;
             this.worlds = worlds;
+            this.config = config;
 
             font = new Font(img.Fonts.Default);
+
+            paddlex = 350;
+            paddlew = 100;
+            paddleh = 20;
+            paddley = 560;
+            paddlealpha = 1.0f;
+
+            blockPartLimit = 65;
+            scoreByteLimit = 30;
+
+            vsync = true;
+            paddleImbueV = 500.0f;
+
+            basePaddleImbueVStart = 325;
+            basePaddleImbueVEnd = 425;
+
+            transdelay = 100; 
+
+            playmusic = true;
+            bgspeed = 50.0f;
+            level = 1;
+            lives = 2;
+            blocksforitem = 7;
+            blocksforpoints = 10;
+
+            levelChange = 1;
         }
 
 
@@ -172,6 +198,7 @@ namespace BallBusterX
         public string titlemode;
         private readonly GraphicsDevice device;
         private CImage img;
+        private float time_s;
         private readonly CSound snd;
         private readonly IContentProvider content;
         private readonly Font font;
@@ -191,7 +218,7 @@ namespace BallBusterX
             paddley = 560;
             paddlerot = 0.0f;
             paddlealpha = 1.0f;
-            bgspeed = bgscroll ? 50.0f : 0.0f;
+            bgspeed = config.BackgroundScroll ? 50.0f : 0.0f;
 
             blockscrolly = 0;
             blockscrollspeedy = 0;
@@ -275,6 +302,7 @@ namespace BallBusterX
             img.smallpaddle.Update(time);
             img.largepaddle.Update(time);
 
+            time_s = (float)time.ElapsedGameTime.TotalSeconds;
 
             leveltime += time.ElapsedGameTime.TotalMilliseconds;
 
@@ -313,7 +341,7 @@ namespace BallBusterX
                 badBall = false;
 
                 myball = balls[j];
-                myball.update(time_s);
+                myball.update(time);
 
 
                 if (myball.fireball)// && !myball.ballsticking)
@@ -785,7 +813,7 @@ namespace BallBusterX
         }
 
 
-        public void DrawLevel(SpriteBatch spriteBatch, CImage img)
+        public void DrawLevel(SpriteBatch spriteBatch)
         {
             //Display.Clear(Color.FromArgb(128, 0, 0, 128));
             SetLightingForLevel();
@@ -836,7 +864,7 @@ namespace BallBusterX
             pad.Alpha = paddlealpha;
             pad.SetRotationCenter(OriginAlignment.Center);
             pad.RotationAngleDegrees = paddlerot;
-            pad.Draw(spriteBatch, PaddlePos);
+            pad.Draw(spriteBatch, new Vector2(PaddlePos.X + paddlew / 2, PaddlePos.Y + paddleh / 2));
 
             DrawPowerUps(spriteBatch);
             DrawScoreBytes(spriteBatch);
@@ -952,11 +980,7 @@ namespace BallBusterX
                     font.TextAlignment = OriginAlignment.TopLeft;
 
                     font.Size = 14;
-
                 }
-
-                if (!attractMode)
-                    img.arrow.Draw(spriteBatch, new Vector2(mousex, mousey));
             }
         }
 
@@ -2577,6 +2601,19 @@ namespace BallBusterX
             blocks.Clear();
 
             uncountedBlocks = 0;
+        }
+
+        public void MouseMove(Point mousePos)
+        {
+            mousex = mousePos.X;
+
+            paddleVelocity = (mousex - (paddlex + paddlew / 2)) / time_s;
+
+            paddlex = mousex - paddlew / 2;
+            paddleCheckEdge();
+
+            mousex = (int)(paddlex + paddlew / 2);
+            mousey = 400;
         }
 
     }

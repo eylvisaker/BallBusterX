@@ -12,9 +12,8 @@ namespace BallBusterX.Scenes
 {
     public class SplashScene : Scene
     {
-        private GraphicsDevice graphicsDevice;
-        private readonly IMouseEventsFactory mouseEventsFactory;
-        private ContentProvider content;
+        private readonly GraphicsDevice graphicsDevice;
+        private readonly IContentProvider content;
         private readonly CImage img;
         private readonly CSound snd;
         private readonly SpriteBatch spriteBatch;
@@ -23,10 +22,9 @@ namespace BallBusterX.Scenes
         private double delay = 500;
         private bool loaded;
 
-        public SplashScene(GraphicsDevice graphicsDevice, IMouseEventsFactory mouseEventsFactory, ContentProvider content, CImage img, CSound snd)
+        public SplashScene(GraphicsDevice graphicsDevice, IContentProvider content, CImage img, CSound snd)
         {
             this.graphicsDevice = graphicsDevice;
-            this.mouseEventsFactory = mouseEventsFactory;
             this.content = content;
             this.img = img;
             this.snd = snd;
@@ -37,10 +35,9 @@ namespace BallBusterX.Scenes
             if (System.Diagnostics.Debugger.IsAttached)
                 delay = 5000;
 
-
             StringBuilder text = new StringBuilder();
 
-            text.AppendLine("Ball: Buster eXtreme.NET");
+            text.AppendLine("Ball: Buster eXtreme");
             text.AppendLine("Copyright 2004-18 Patrick Avella, Erik Ylvisaker");
             text.AppendLine("Game Programming: Patrick Avella (patrickavella.com)");
             text.AppendLine("eXtreme Version Programming: Erik Ylvisaker (vermiliontower.com)");
@@ -71,8 +68,6 @@ namespace BallBusterX.Scenes
             if (delay < 0)
             {
                 IsFinished = true;
-                SceneStack.Add(new TitleScene(graphicsDevice, content, mouseEventsFactory, img, snd, new BBXConfig()));
-                SceneStack.Remove(this);
             }
         }
 

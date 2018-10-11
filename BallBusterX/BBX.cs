@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using AgateLib;
 using AgateLib.Scenes;
+using Autofac;
+using Autofac.Core;
 using BallBusterX.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,21 +13,25 @@ namespace BallBusterX
 {
     public class BBX
     {
-        private GraphicsDevice graphicsDevice;
-        private ContentProvider content;
-        private readonly CImage img;
-        private readonly CSound snd;
         private SceneStack scenes = new SceneStack();
 
-        public BBX(GraphicsDevice graphicsDevice, GameWindow window, ContentProvider content)
+        public BBX(BBXFactory bbxFactory)
         {
-            this.graphicsDevice = graphicsDevice;
-            this.content = content;
+            SplashScene splashScene = bbxFactory.CreateSplashScene();
 
-            img = new CImage();
-            snd = new CSound();
+            splashScene.SceneEnd += (_, __) =>
+            {
+                TitleScene titleScene = bbxFactory.CreateTitleScene();
+                scenes.Add(titleScene);
 
-            scenes.Add(new SplashScene(graphicsDevice, new MouseEventsFactory(graphicsDevice, window), content, img, snd));
+                titleScene.BeginGame += (gameState) =>
+                {
+                    var gameScene = bbxFactory.CreateGameScene(gameState);
+                    scenes.Add(gameScene);
+                };
+            };
+
+            scenes.Add(splashScene);
         }
 
         public event Action NoMoreScenes;
@@ -43,6 +49,31 @@ namespace BallBusterX
         public void Draw(GameTime gameTime)
         {
             scenes.Draw(gameTime);
+        }
+    }
+
+    public class BBXFactory
+    {
+        private IComponentContext context;
+
+        public BBXFactory(IComponentContext context)
+        {
+            this.context = context;
+        }
+
+        public SplashScene CreateSplashScene()
+        {
+            return context.Resolve<SplashScene>();
+        }
+
+        public TitleScene CreateTitleScene()
+        {
+            return context.Resolve<TitleScene>();
+        }
+
+        public GameScene CreateGameScene(GameState gameState)
+        {
+            return context.Resolve<GameScene>(new[] { new NamedParameter("gameState", gameState) });
         }
     }
 }

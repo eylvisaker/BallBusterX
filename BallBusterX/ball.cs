@@ -165,8 +165,10 @@ namespace BallBusterX
             color = new Color(255, 255, 255, alpha);
         }
 
-        public void update(float time_s)
+        public void update(GameTime time)
         {
+            float time_s = (float)time.ElapsedGameTime.TotalSeconds;
+
             ballsticktimeleft -= time_s;
             timetonextfade -= time_s;
 

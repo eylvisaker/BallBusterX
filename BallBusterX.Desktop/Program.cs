@@ -11,10 +11,14 @@ namespace BallBusterX.Desktop
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             using (var game = new BallBusterDesktopGame())
+            {
+                game.Config.ParseArgs(args);
+
                 game.Run();
+            }
         }
     }
 }

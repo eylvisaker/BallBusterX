@@ -1,4 +1,8 @@
-﻿using AgateLib;
+﻿using System;
+using AgateLib;
+using AgateLib.Input;
+using Autofac;
+using BallBusterX.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -22,9 +26,9 @@ namespace BallBusterX.Desktop
             graphics.PreferredBackBufferHeight = 600;
 
             Content.RootDirectory = "Content";
-
-            Window.Title = "Ball: Buster X";
         }
+
+        public BBXConfig Config { get; set; } = new BBXConfig();
 
         /// <summary>
         /// Allows the game to perform any initialization it needs to before starting to run.
@@ -36,9 +40,35 @@ namespace BallBusterX.Desktop
         {
             base.Initialize();
 
-            bbx = new BBX(graphics.GraphicsDevice, Window, new ContentProvider(Content));
+            var container = InitializeContainer();
 
+            Window.Title = "Ball: Buster X";
+
+            bbx = container.Resolve<BBX>();
             bbx.NoMoreScenes += Exit;
+        }
+
+        private IContainer InitializeContainer()
+        {
+            var builder = new ContainerBuilder();
+
+            builder.RegisterInstance(Config).AsSelf();
+            builder.RegisterInstance(new CImage()).AsSelf();
+            builder.RegisterInstance(new CSound()).AsSelf();
+            builder.RegisterInstance(graphics.GraphicsDevice).AsSelf();
+            builder.RegisterInstance(Window).As<GameWindow>();
+            builder.RegisterInstance(new ContentProvider(Content)).AsImplementedInterfaces();
+            builder.RegisterInstance(new WorldCollection());
+            builder.RegisterType<BBX>();
+            builder.RegisterType<TitleScene>();
+            builder.RegisterType<SplashScene>();
+            builder.RegisterType<GameScene>();
+            builder.RegisterType<GameState>();
+            builder.RegisterType<MouseEvents>().AsImplementedInterfaces();
+            builder.Register(c => new BBXFactory(c.Resolve<IComponentContext>())).AsSelf().SingleInstance();
+            builder.Register(c => new GameStateFactory(c.Resolve<IComponentContext>())).AsSelf().AsImplementedInterfaces().SingleInstance();
+
+            return builder.Build();
         }
 
         /// <summary>

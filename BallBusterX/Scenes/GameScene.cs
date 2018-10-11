@@ -2,9 +2,6 @@
 using AgateLib.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BallBusterX.Scenes
 {
@@ -48,6 +45,8 @@ namespace BallBusterX.Scenes
             mouse.Update(time);
 
             gameState.UpdateLevel(time);
+
+            IsFinished = gameState.gameover;
         }
 
         protected override void DrawScene(GameTime time)

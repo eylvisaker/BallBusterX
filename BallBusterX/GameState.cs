@@ -17,8 +17,11 @@ namespace BallBusterX
 
         private const float maxPaddleImbueV = 1000.0f;
         private const float minPaddleImbueV = 200.0f;
-        private bool doLighting = true;
+
         public const int ballLimit = 100;
+
+        private bool doLighting = true;
+        private float deathAnimation;
 
         /// <summary>
         /// Total time this level has been running in milliseconds.
@@ -40,7 +43,7 @@ namespace BallBusterX
 
         public bool catchblue, catchred;
         public bool pow, smash;
-        public bool fireball, blaster, stageover, transitionout, died, dying;
+        public bool fireball, blaster, stageover, transitionout, gameover, dying;
         public bool playmusic;
 
         public int ballStickCount;
@@ -75,7 +78,7 @@ namespace BallBusterX
         public string hitkeystring;
 
         public int transitionspeed, transdelay;
-        public int transstart, deathstart;
+        public int transstart;
         public int lives;
         public int blocksforitem;    // these are for the system of dropping items....
 
@@ -211,7 +214,7 @@ namespace BallBusterX
             leveltime = 0;
             stageover = false;
             transitionout = false;
-            died = false;
+            gameover = false;
             dying = false;
 
             transcount = 0;
@@ -697,6 +700,7 @@ namespace BallBusterX
             bgy += bgspeed * time_s;
             blockscrolly += blockscrollspeedy * time_s;
 
+            CheckDeathCondition(time);
 
             /// update for attract mode
             // first check to see if we want to chase a powerup instead
@@ -806,8 +810,53 @@ namespace BallBusterX
             }
         }
 
-        // function for sort to sort balls by y.
-        private int ballcheck(CBall a, CBall b)
+        private void CheckDeathCondition(GameTime time)
+        {
+            deathAnimation -= (float)time.ElapsedGameTime.TotalMilliseconds;
+
+            if (balls.Count == 0 && !transitionout)
+            {
+                if (paddlealpha == 1.0f)
+                {
+                    snd.die.Play();
+                    dying = true;
+                    paddley -= 100 * time_s;
+                    deathAnimation = 0;
+                }
+                if (deathAnimation <= 0)
+                {
+                    paddlealpha -= 0.5f * time_s;
+                    paddlerot += 1440.0f * time_s;
+                    paddley -= 75 * time_s;
+                    deathAnimation += 20;
+                }
+                if (paddlealpha < 0.0f)
+                {
+                    dying = false;
+                    gameover = false;
+
+                    freezeScore = true;
+                    powerUp(PowerupTypes.RESET);
+                    powerupcount--;
+                    freezeScore = false;
+
+                    paddleImbueV = basePaddleImbueV = basePaddleImbueVStart;
+
+                    if (lives == 0) { stageover = true; gameover = true; }
+                    if (lives > 0)
+                    {
+                        addBall();
+                        if (!transitionout) lives--;
+                        paddley = 560;
+                        paddlerot = 0.0f;
+                        paddlealpha = 1.0f;
+                    }
+                }
+            }
+        }
+
+            // function for sort to sort balls by y.
+            private int ballcheck(CBall a, CBall b)
         {
             return a.bally.CompareTo(b.bally);
         }
@@ -920,7 +969,7 @@ namespace BallBusterX
             // Draw whatever text
             string message = "Score: " + getScore().ToString();
 
-            font.Size = 14;
+            font.Size = 12;
             font.Color = Color.Black;
             font.DrawText(spriteBatch, new Vector2(11, 585), message);
             font.Color = Color.White;
@@ -1990,7 +2039,8 @@ namespace BallBusterX
 
                     if (mypowerup.getEffect() == PowerupTypes.PU_NONE) hitpaddle = false;
 
-                    if (dying) hitpaddle = false;
+                    if (dying)
+                        hitpaddle = false;
 
                     if (hitpaddle)
                     {
@@ -2005,9 +2055,7 @@ namespace BallBusterX
                     {
                         // delete it if the alpha is gone....
                         badPowerup = true;
-
                     }
-
 
                     if (badPowerup)
                     {

@@ -307,7 +307,10 @@ namespace BallBusterX
 
             time_s = (float)time.ElapsedGameTime.TotalSeconds;
 
-            leveltime += time.ElapsedGameTime.TotalMilliseconds;
+            if (!transitionout)
+            {
+                leveltime += time.ElapsedGameTime.TotalMilliseconds;
+            }
 
             if (basePaddleImbueV < basePaddleImbueVEnd)
             {
@@ -808,7 +811,38 @@ namespace BallBusterX
 
                 paddleVelocity = attractvelocity;
             }
+
+            //DropDoorIfPlayerSucks();
+
+            CheckLevelCompleteCondition();
         }
+
+        private void CheckLevelCompleteCondition()
+        {
+            if (blocks.Count <= uncountedBlocks && !transitionout && !stageover)
+            {
+                transitionout = true;
+
+                snd.speedup.Play();
+            }
+        }
+
+        //private void DropDoorIfPlayerSucks()
+        //{
+        //    // see if we should drop a door powerup
+        //    if (blocks.Count <= uncountedBlocks + 5 && !transitionout && !stageover)
+        //    {
+        //        if (lowblocktime == start)
+        //            lowblocktime = (int)Timing.TotalMilliseconds;
+
+        //        if (Timing.TotalMilliseconds - lowblocktime > 20000)
+        //        {
+        //            dropPowerUp(400, 10, PowerupTypes.DOOR);
+        //            lowblocktime += 15000;
+        //        }
+        //    }
+        //}
+
 
         private void CheckDeathCondition(GameTime time)
         {

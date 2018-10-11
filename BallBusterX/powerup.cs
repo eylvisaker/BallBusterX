@@ -60,38 +60,34 @@ namespace BallBusterX
 
         public virtual bool update(GameTime time)
         {
-            float time_ms = (float)time.ElapsedGameTime.TotalMilliseconds;
+            float time_s = (float)time.ElapsedGameTime.TotalSeconds;
 
             if (this.effect != PowerupTypes.PU_NONE)
             {
                 // we'll set the effect to z when the player attains the power up
-                this.position.Y += this.velocity.Y * time_ms;
-                this.position.X += this.velocity.X * time_ms;
+                this.position.Y += this.velocity.Y * time_s;
+                this.position.X += this.velocity.X * time_s;
                 this.extray = this.position.Y;
 
                 //if ((unsigned)this.delay + start < (int)Timing.TotalMilliseconds)
                 //{
-                this.velocity.Y += 300.0f * time_ms;
+                this.velocity.Y += 300.0f * time_s;
 
                 //	this.start= (int)Timing.TotalMilliseconds;
                 //}
                 if (this.velocity.Y > 600) return false;
                 return true;
             }
-
-            this.delay -= time.ElapsedGameTime.TotalMilliseconds;
-
-            if (this.delay > 0)
+            else
             {
-                this.w += 0.06f;
-                this.position.X -= 0.03f * icon.SpriteWidth;
-                this.h -= 0.03f;
-                //		this.r-= 0.03f;
-                this.a -= 0.03f;
-                this.position.Y -= velocity.Y * time_ms;
-                this.position.X += velocity.X * time_ms;
-                this.extray -= (velocity.Y * 1.5f) * time_ms;
+                this.w += 10f * time_s;
+                this.h -= 7.5f * time_s;
+                this.position.X -= 0.03f * icon.SpriteWidth * time_s;
 
+                this.a -= 1f * time_s;
+                this.position.Y -= velocity.Y * time_s;
+                this.position.X += velocity.X * time_s;
+                this.extray -= (velocity.Y * 1.5f) * time_s;
 
                 if (this.a <= 0.0f) return false;
             }

@@ -34,7 +34,7 @@ namespace BallBusterX
         public int attractvelocity;
 
         public int levelChange;
-
+        private readonly Texture2D whiteTexture;
         public int powerupLeft = 0;
         public int powerupTop = 0;
 
@@ -44,6 +44,7 @@ namespace BallBusterX
         public bool catchblue, catchred;
         public bool pow, smash;
         public bool fireball, blaster, stageover, transitionout, gameover, dying;
+
         public bool playmusic;
 
         public int ballStickCount;
@@ -189,6 +190,8 @@ namespace BallBusterX
             blocksforpoints = 10;
 
             levelChange = 1;
+
+            whiteTexture = content.Load<Texture2D>("imgs/white");
         }
 
 
@@ -636,7 +639,7 @@ namespace BallBusterX
                     myball.ballx = paddlex + myball.stickydifference;
                     myball.bally = paddley - myball.ballh;
 
-                    if (myball.ballsticktimeleft > 0 && !transitionout)
+                    if (myball.ballsticktimeleft <= 0 && !transitionout)
                     {
                         myball.ballsticking = false;
                         ballStickCount--;
@@ -974,10 +977,12 @@ namespace BallBusterX
                 if (spikes != 0)
                 {
                     int angle = 360 / spikes;
-                    int x, y;
+                    Vector2 ballCenter = myball.BallCenter;
 
-                    x = ballx - 3;
-                    y = bally - 3;
+                    float x = ballCenter.X, y = ballCenter.Y;
+
+                    //x -= 3;
+                    //y -= 3;
 
                     img.spike.DisplayAlignment = OriginAlignment.TopLeft;
                     img.spike.SetRotationCenter(OriginAlignment.Center);
@@ -1039,7 +1044,7 @@ namespace BallBusterX
                 Rectangle myrect = new Rectangle(0, 0, 800, 600);
                 Color mycolor = new Color(255, 255, 255, transcount);
 
-                FillRect(myrect, mycolor);
+                FillRect(spriteBatch, myrect, mycolor);
 
             }
 
@@ -1049,7 +1054,7 @@ namespace BallBusterX
                 Rectangle myrect = new Rectangle(0, 0, 800, 600);
                 Color mycolor = new Color(0, 0, 0, 100);
 
-                FillRect(myrect, mycolor);
+                FillRect(spriteBatch, myrect, mycolor);
 
                 if (pauseTimer % 1000 < 500)
                 {
@@ -1067,7 +1072,12 @@ namespace BallBusterX
             }
         }
 
-        private void FillRect(Rectangle myrect, Color mycolor) => throw new NotImplementedException();
+        public void FillRect(SpriteBatch spriteBatch, Rectangle rectangle, Color color)
+        {
+            Color premulColor = color * (color.A / 255.0f);
+
+            spriteBatch.Draw(whiteTexture, rectangle, premulColor);
+        }
 
         private void DrawBackground(SpriteBatch spriteBatch, float yval)
         {
@@ -2698,5 +2708,23 @@ namespace BallBusterX
             mousey = 400;
         }
 
+        public void MouseClick()
+        {
+            for (int i = 0; i < balls.Count; i++)
+            {
+                if (balls[i].ballsticking)
+                {
+                    balls[i].ballsticking = false;
+                    //balls[i].bally -= blockscrolly;	// correct for paddle moving up
+                    ballStickCount--;
+                }
+            }
+
+            if (blaster && !dying)
+            {
+                addBall((int)(paddlew * 0.5f + random.Next(-4, 2)));
+            }
+            return;
+        }
     }
 }

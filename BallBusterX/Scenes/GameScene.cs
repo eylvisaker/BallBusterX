@@ -26,11 +26,18 @@ namespace BallBusterX.Scenes
             this.img = img;
             this.snd = snd;
             this.config = config;
+
             mouse.MouseMove += Mouse_MouseMove;
+            mouse.MouseDown += Mouse_MouseDown;
 
             this.spriteBatch = new SpriteBatch(graphicsDevice);
 
             InitializeLevel();
+        }
+
+        private void Mouse_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            gameState.MouseClick();
         }
 
         private void InitializeLevel()

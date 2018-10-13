@@ -86,6 +86,8 @@ namespace BallBusterX
 
         private float ballangle; // rotational angle
 
+        public Vector2 BallCenter => new Vector2(ballx + ballw / 2, bally + ballh / 2);
+
         public float Ballangle
         {
             get { return ballangle; }

@@ -23,7 +23,6 @@ namespace BallBusterX.Scenes
         private readonly GameScene attractMode;
         private readonly IMouseEvents mouse;
         private readonly Font font;
-        private readonly Texture2D whiteTexture;
         private double clock;
         private float time_s;
         private GameState game;
@@ -63,7 +62,6 @@ namespace BallBusterX.Scenes
             mouse.MouseUp += Mouse_MouseUp;
 
             font = new Font(img.Fonts.Default);
-            whiteTexture = content.Load<Texture2D>("imgs/white");
         }
 
         public event Action<GameState> BeginGame;
@@ -399,7 +397,7 @@ namespace BallBusterX.Scenes
 
         private void FillRect(Rectangle rectangle, Color color)
         {
-            spriteBatch.Draw(whiteTexture, rectangle, color);
+            game.FillRect(spriteBatch, rectangle, color);
         }
     }
 }

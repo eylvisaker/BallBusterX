@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Xunit;
 
 namespace UnitTests
@@ -6,9 +6,8 @@ namespace UnitTests
     public class UnitTest1
     {
         [Fact]
-        public void Test1()
+        public void TestMethod1()
         {
-
         }
     }
 }

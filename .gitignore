@@ -3,3 +3,7 @@ bin/
 obj/
 .*.swp
 packages/
+/Output/
+/TestReport/
+*~
+/Coverage.xml

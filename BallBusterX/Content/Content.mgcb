@@ -820,9 +820,6 @@
 /processorParam:TextureFormat=Color
 /build:imgs/spike.png
 
-#begin imgs/sprites.xml
-/copy:imgs/sprites.xml
-
 #begin imgs/topborder.png
 /importer:TextureImporter
 /processor:TextureProcessor

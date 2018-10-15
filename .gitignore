@@ -7,3 +7,5 @@ obj/
 /TestReport/
 *~
 /Coverage.xml
+/temp-package
+

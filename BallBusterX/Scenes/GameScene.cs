@@ -42,6 +42,7 @@ namespace BallBusterX.Scenes
         }
 
         public event Action Pause;
+        public event Action StageComplete;
 
         private void Keyboard_KeyUp(object sender, KeyEventArgs e) 
         {
@@ -59,7 +60,10 @@ namespace BallBusterX.Scenes
 
                 case Keys.P:
                 case Keys.Pause:
-                    Pause?.Invoke();
+                    if (!gameState.transitionout)
+                    {
+                        Pause?.Invoke();
+                    }
                     break;
             }
         }
@@ -117,6 +121,10 @@ namespace BallBusterX.Scenes
             {
                 if (song != null)
                     MediaPlayer.Stop();
+            }
+            if (gameState.stageComplete)
+            {
+                StageComplete?.Invoke();
             }
         }
 

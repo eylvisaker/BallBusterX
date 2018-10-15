@@ -35,7 +35,19 @@ namespace BallBusterX
             scenes.Add(gameScene);
 
             gameScene.Pause += Pause;
+            gameScene.StageComplete += () => StageComplete(gameState);
+        }
 
+        private void StageComplete(GameState gameState)
+        {
+            var completeScene = bbxFactory.CreateLevelCompleteScene(gameState);
+
+            scenes.Add(completeScene);
+
+            completeScene.SceneEnd += (_, __) =>
+            {
+                gameState.initLevel(false);
+            };
         }
 
         private void Pause()
@@ -90,6 +102,11 @@ namespace BallBusterX
         public PausedScene CreatePauseScene()
         {
             return context.Resolve<PausedScene>();
+        }
+
+        public StageCompleteScene CreateLevelCompleteScene(GameState gameState)
+        {
+            return context.Resolve<StageCompleteScene>(new[] { new NamedParameter("gameState", gameState) });
         }
     }
 }

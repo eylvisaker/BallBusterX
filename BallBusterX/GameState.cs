@@ -26,7 +26,7 @@ namespace BallBusterX
         /// <summary>
         /// Total time this level has been running in milliseconds.
         /// </summary>
-        public double leveltime;
+        public double levelTime;
 
         // the variables here are REALLY sloppy, sorry......... :P
         public string gamemode;
@@ -43,7 +43,7 @@ namespace BallBusterX
 
         public bool catchblue, catchred;
         public bool pow, smash;
-        public bool fireball, blaster, stageover, transitionout, gameover, dying;
+        public bool fireball, blaster, stageComplete, transitionout, gameover, dying;
 
         public bool playmusic;
 
@@ -215,8 +215,8 @@ namespace BallBusterX
 
         public void initLevel(bool resetPowerups)
         {
-            leveltime = 0;
-            stageover = false;
+            levelTime = 0;
+            stageComplete = false;
             transitionout = false;
             gameover = false;
             dying = false;
@@ -313,7 +313,7 @@ namespace BallBusterX
 
             if (!transitionout)
             {
-                leveltime += time.ElapsedGameTime.TotalMilliseconds;
+                levelTime += time.ElapsedGameTime.TotalMilliseconds;
             }
 
             if (basePaddleImbueV < basePaddleImbueVEnd)
@@ -696,7 +696,7 @@ namespace BallBusterX
                 if (transcount >= 255)
                 {
 
-                    stageover = true;
+                    stageComplete = true;
                     paddley = 560;
                     snd.ching.Play();
 
@@ -823,7 +823,7 @@ namespace BallBusterX
 
         private void CheckLevelCompleteCondition()
         {
-            if (blocks.Count <= uncountedBlocks && !transitionout && !stageover)
+            if (blocks.Count <= uncountedBlocks && !transitionout && !stageComplete)
             {
                 transitionout = true;
 
@@ -880,7 +880,7 @@ namespace BallBusterX
 
                     paddleImbueV = basePaddleImbueV = basePaddleImbueVStart;
 
-                    if (Lives == 0) { stageover = true; gameover = true; }
+                    if (Lives == 0) { gameover = true; }
                     if (Lives > 0)
                     {
                         addBall();
@@ -974,11 +974,11 @@ namespace BallBusterX
                 int ballx = (int)myball.ballx;
                 int bally = (int)myball.bally;
 
+                Vector2 ballCenter = myball.BallCenter;
 
                 if (spikes != 0)
                 {
                     int angle = 360 / spikes;
-                    Vector2 ballCenter = myball.BallCenter;
 
                     float x = ballCenter.X, y = ballCenter.Y;
 
@@ -1001,15 +1001,17 @@ namespace BallBusterX
                 {
                     float offset = myball.ballw / 2 - img.smash.SpriteWidth / 2;
 
+                    img.smash.DisplayAlignment = OriginAlignment.Center;
+                    img.smash.SetRotationCenter(OriginAlignment.Center);
                     img.smash.RotationAngleDegrees = myball.SmashAngle;
-                    img.smash.Draw(spriteBatch, new Vector2(ballx + offset, bally + offset));
+                    img.smash.Draw(spriteBatch, ballCenter);
                 }
             }
 
             // Draw whatever text
-            string message = "Score: " + getScore().ToString();
+            string message = $"Score: {Score}";
 
-            font.Size = 12;
+            font.Size = 10;
             font.Color = Color.Black;
             font.DrawText(spriteBatch, new Vector2(11, 585), message);
             font.Color = Color.White;
@@ -1803,7 +1805,7 @@ namespace BallBusterX
             if (scoreGain < 0) scoreGain = 0;
 
             // gain the actual points
-            gainPoints(scoreGain, (int)(powerup.x + 20), (int)(powerup.y + 20));
+            GainPoints(scoreGain, (int)(powerup.x + 20), (int)(powerup.y + 20));
 
         }
 
@@ -2151,20 +2153,25 @@ namespace BallBusterX
             }
         }
 
-        private void gainPoints(int pts, int x, int y)
+        private void GainPoints(int pts, int x, int y)
         {
             if (freezeScore)
                 return;
 
-            thescore += pts;
-
+            GainPoints(pts);
 
             if (x > 0)
             {
                 dropScoreByte(x, y, pts);
             }
+        }
 
+        public void GainPoints(int pts)
+        {
+            if (freezeScore)
+                return;
 
+            thescore += pts;
         }
 
         private void dropFadeBall(CBall myball)
@@ -2283,10 +2290,7 @@ namespace BallBusterX
             //}
         }
 
-        private int getScore()
-        {
-            return thescore;
-        }
+        public int Score => thescore;
 
         private bool paddleCheckEdge()
         {
@@ -2489,7 +2493,7 @@ namespace BallBusterX
             }
 
             // woot!
-            gainPoints(scoreGain, blockx + 20, blocky + 10);
+            GainPoints(scoreGain, blockx + 20, blocky + 10);
 
         }
 

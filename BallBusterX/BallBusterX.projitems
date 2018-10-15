@@ -29,7 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\PausedScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\SplashScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\TitleScene.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Scenes\LevelCompleteScene.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\StageCompleteScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ScoreByte.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SettingsFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)World.cs" />

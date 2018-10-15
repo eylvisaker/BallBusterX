@@ -21,6 +21,13 @@ $dummy = New-Item -ItemType Directory -Force -Path $destDir
 
 .\Build.ps1 -config Release
 
-CreatePackage BallBusterX.Desktop\bin\DesktopGL\AnyCPU\Release "BallBusterX_Windows$version"
+New-Item -ItemType Directory -Force -Path "temp-package"
+
+Copy-Item "BallBusterX.Desktop\bin\DesktopGL\AnyCPU\Release" -Destination "temp-package\Windows" -Recurse
+Copy-Item "BallBusterX.Desktop\bin\DesktopGL\AnyCPU\Release" -Destination "temp-package\Linux\bin" -Recurse
+Copy-Item "Linux\*" -Destination "temp-package\Linux"
+
+CreatePackage "temp-package\Windows" "BallBusterX_Windows$version"
+CreatePackage "temp-package\Linux" "BallBusterX_Linux$version"
 
 "Packaging complete."

@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\EditorScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\GameScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\GameStateFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\PausedScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\SplashScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\TitleScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\LevelCompleteScene.cs" />

@@ -51,6 +51,7 @@ namespace BallBusterX
 
         [Obsolete("Use catchbluetimeleft, catchredtimeleft instead")]
         public int catchbluestart, catchredstart;
+
         [Obsolete("Use blastertimeleft instead")]
         public int blasterstart;
         [Obsolete("Use fireballstart instead")]
@@ -80,7 +81,7 @@ namespace BallBusterX
 
         public int transitionspeed, transdelay;
         public int transstart;
-        public int lives;
+        public int Lives;
         public int blocksforitem;    // these are for the system of dropping items....
 
         public int blocksforpoints;
@@ -185,7 +186,7 @@ namespace BallBusterX
             playmusic = true;
             bgspeed = 50.0f;
             level = 1;
-            lives = 2;
+            Lives = 2;
             blocksforitem = 7;
             blocksforpoints = 10;
 
@@ -660,7 +661,7 @@ namespace BallBusterX
 
                 if (badBall)
                 {
-                    deleteBall(j);
+                    DeleteBall(j);
 
                     if (!transitionout)
                     {
@@ -879,11 +880,11 @@ namespace BallBusterX
 
                     paddleImbueV = basePaddleImbueV = basePaddleImbueVStart;
 
-                    if (lives == 0) { stageover = true; gameover = true; }
-                    if (lives > 0)
+                    if (Lives == 0) { stageover = true; gameover = true; }
+                    if (Lives > 0)
                     {
                         addBall();
-                        if (!transitionout) lives--;
+                        if (!transitionout) Lives--;
                         paddley = 560;
                         paddlerot = 0.0f;
                         paddlealpha = 1.0f;
@@ -1029,7 +1030,7 @@ namespace BallBusterX
             img.ball.RotationAngle = 0;
 
             int ilives;
-            for (ilives = 0; ilives < lives; ilives++)
+            for (ilives = 0; ilives < Lives; ilives++)
             {
                 img.ball.Draw(spriteBatch, new Vector2(775 - (ilives * 13), 588));
             }
@@ -1075,6 +1076,7 @@ namespace BallBusterX
         public void FillRect(SpriteBatch spriteBatch, Rectangle rectangle, Color color)
         {
             Color premulColor = color * (color.A / 255.0f);
+            premulColor.A = color.A;
 
             spriteBatch.Draw(whiteTexture, rectangle, premulColor);
         }
@@ -1155,13 +1157,12 @@ namespace BallBusterX
         }
 
 
-        private void deleteBall(int myball)
+        public void DeleteBall(int myball)
         {
             if (balls[myball].ballsticking)
                 ballStickCount--;
 
             balls.RemoveAt(myball);
-
         }
 
         private void dropBlockParts(float myx, float myy, Sprite myblock, Color clr, float ballvx, float ballvy)
@@ -1376,7 +1377,7 @@ namespace BallBusterX
         {
 
             while (balls.Count > 0)
-                deleteBall(0);
+                DeleteBall(0);
 
         }
 
@@ -1452,7 +1453,7 @@ namespace BallBusterX
                     break;
 
                 case PowerupTypes.ONEUP:
-                    lives++;
+                    Lives++;
                     scoreGain = 50;
 
                     break;
@@ -2726,5 +2727,12 @@ namespace BallBusterX
             }
             return;
         }
+
+        public void SelfDestruct()
+        {
+            while (balls.Count > 0)
+                DeleteBall(0);
+        }
+
     }
 }

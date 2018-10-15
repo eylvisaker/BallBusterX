@@ -1,37 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AgateLib;
-using AgateLib.Scenes;
+﻿using AgateLib.Scenes;
 using Autofac;
-using Autofac.Core;
 using BallBusterX.Scenes;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace BallBusterX
 {
     public class BBX
     {
         private SceneStack scenes = new SceneStack();
+        private readonly BBXFactory bbxFactory;
 
         public BBX(BBXFactory bbxFactory)
         {
             SplashScene splashScene = bbxFactory.CreateSplashScene();
 
-            splashScene.SceneEnd += (_, __) =>
-            {
-                TitleScene titleScene = bbxFactory.CreateTitleScene();
-                scenes.Add(titleScene);
-
-                titleScene.BeginGame += (gameState) =>
-                {
-                    var gameScene = bbxFactory.CreateGameScene(gameState);
-                    scenes.Add(gameScene);
-                };
-            };
+            splashScene.SceneEnd += (_, __) => StartTitle();
 
             scenes.Add(splashScene);
+            this.bbxFactory = bbxFactory;
+        }
+
+        private void StartTitle()
+        {
+            TitleScene titleScene = bbxFactory.CreateTitleScene();
+            scenes.Add(titleScene);
+
+            titleScene.BeginGame += BeginGame;
+        }
+
+        private void BeginGame(GameState gameState)
+        {
+            var gameScene = bbxFactory.CreateGameScene(gameState);
+            scenes.Add(gameScene);
+
+            gameScene.Pause += Pause;
+
+        }
+
+        private void Pause()
+        {
+            var pauseScene = bbxFactory.CreatePauseScene();
+
+            scenes.Add(pauseScene);
         }
 
         public event Action NoMoreScenes;
@@ -74,6 +85,11 @@ namespace BallBusterX
         public GameScene CreateGameScene(GameState gameState)
         {
             return context.Resolve<GameScene>(new[] { new NamedParameter("gameState", gameState) });
+        }
+
+        public PausedScene CreatePauseScene()
+        {
+            return context.Resolve<PausedScene>();
         }
     }
 }

@@ -2,7 +2,9 @@
 using AgateLib.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using System;
 
 namespace BallBusterX.Scenes
 {
@@ -15,7 +17,9 @@ namespace BallBusterX.Scenes
         private readonly CImage img;
         private readonly CSound snd;
         private readonly BBXConfig config;
+        private readonly PausedScene pausedScene;
         private readonly GraphicsDevice graphicsDevice;
+        private readonly KeyboardEvents keyboard;
         private readonly SpriteBatch spriteBatch;
 
         public GameScene(GameState gameState, GraphicsDevice graphicsDevice, IMouseEvents mouse, CImage img, CSound snd, BBXConfig config)
@@ -26,13 +30,38 @@ namespace BallBusterX.Scenes
             this.img = img;
             this.snd = snd;
             this.config = config;
+            this.spriteBatch = new SpriteBatch(graphicsDevice);
 
             mouse.MouseMove += Mouse_MouseMove;
             mouse.MouseDown += Mouse_MouseDown;
 
-            this.spriteBatch = new SpriteBatch(graphicsDevice);
+            keyboard = new KeyboardEvents();
+            keyboard.KeyUp += Keyboard_KeyUp;
 
             InitializeLevel();
+        }
+
+        public event Action Pause;
+
+        private void Keyboard_KeyUp(object sender, KeyEventArgs e) 
+        {
+            switch (e.Key)
+            {
+                case Keys.D:
+                    gameState.SelfDestruct();
+                    break;
+
+                case Keys.Escape:
+                case Keys.End:
+                    gameState.Lives = 0;
+                    gameState.SelfDestruct();
+                    break;
+
+                case Keys.P:
+                case Keys.Pause:
+                    Pause?.Invoke();
+                    break;
+            }
         }
 
         private void Mouse_MouseDown(object sender, MouseButtonEventArgs e)
@@ -78,6 +107,7 @@ namespace BallBusterX.Scenes
             base.OnUpdate(time);
 
             mouse.Update(time);
+            keyboard.Update(time);
 
             gameState.UpdateLevel(time);
 

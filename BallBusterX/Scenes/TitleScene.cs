@@ -4,6 +4,7 @@ using AgateLib.Input;
 using AgateLib.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using System;
 
@@ -22,6 +23,7 @@ namespace BallBusterX.Scenes
         private readonly WorldCollection worlds;
         private readonly GameScene attractMode;
         private readonly IMouseEvents mouse;
+        private readonly KeyboardEvents keyboard;
         private readonly Font font;
         private double clock;
         private float time_s;
@@ -61,10 +63,54 @@ namespace BallBusterX.Scenes
             mouse.MouseMove += Mouse_MouseMove;
             mouse.MouseUp += Mouse_MouseUp;
 
+            keyboard = new KeyboardEvents();
+            keyboard.KeyDown += Keyboard_KeyDown;
             font = new Font(img.Fonts.Default);
         }
 
         public event Action<GameState> BeginGame;
+
+        private void Keyboard_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Keys.Up)
+            {
+                beginningLevel++;
+                beginningChanged = true;
+
+                // don't go past the last level
+                if (beginningWorld == worlds.Count - 1)
+                {
+                    if (beginningLevel >= worlds[beginningWorld].lvls.Count)
+                    {
+                        beginningLevel--;
+                        beginningChanged = false;
+                    }
+
+                }
+
+                //levelChange = 1;
+            }
+            else if (e.Key == Keys.Down)
+            {
+                beginningLevel--;
+                beginningChanged = true;
+
+                //levelChange = -1;
+
+                // don't go before the first level
+                if (beginningLevel < 0 && beginningWorld > 0)
+                {
+                    beginningWorld--;
+
+                    beginningLevel = worlds[beginningWorld].lvls.Count - 1;
+                }
+                else if (beginningLevel < 0 && beginningWorld == 0)
+                {
+                    beginningLevel = 0;
+                    beginningChanged = false;
+                }
+            }
+        }
 
         private void Mouse_MouseUp(object sender, MouseButtonEventArgs e)
         {
@@ -138,7 +184,7 @@ namespace BallBusterX.Scenes
 
             game = gameStateFactory.CreateGameState();
 
-            game.lives = 2;
+            game.Lives = 2;
             game.thescore = 0;
             game.titlemode = " ";
 
@@ -164,6 +210,7 @@ namespace BallBusterX.Scenes
             timeSinceMouseMove += time.ElapsedGameTime.TotalMilliseconds;
 
             mouse.Update(time);
+            keyboard.Update(time);
 
             game.UpdateLevel(time);
             UpdateTitle(time);

@@ -63,6 +63,8 @@ namespace BallBusterX.Desktop
             builder.RegisterType<TitleScene>();
             builder.RegisterType<SplashScene>();
             builder.RegisterType<GameScene>();
+            builder.RegisterType<PausedScene>();
+            builder.RegisterType<LevelCompleteScene>();
             builder.RegisterType<GameState>();
             builder.RegisterType<MouseEvents>().AsImplementedInterfaces();
             builder.Register(c => new BBXFactory(c.Resolve<IComponentContext>())).AsSelf().SingleInstance();

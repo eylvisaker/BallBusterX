@@ -40,12 +40,12 @@ namespace BallBusterX
             this.ballvx = 50.0f;
             this.ballvy = -120.0f;
             this.ballv = 130.0f;
-            this.ballangle = 0;
-            this.ballvrot = 45;
+            this.Angle = 0;
+            this.AngularVelocity = 45;
 
-            this.ballsticking = true;
+            this.sticking = true;
             this.stickydifference = 50;
-            this.ballsticktimeleft = 4000;
+            this.stickTimeLeft_ms = 4000;
 
             fireball = false;
             smash = false;
@@ -64,14 +64,14 @@ namespace BallBusterX
             this.ballvx = ball.ballvx;
             this.ballvy = ball.ballvy;
             this.ballv = ball.ballv;
-            this.ballangle = ball.ballangle;
-            this.ballvrot = ball.ballvrot;
+            this.Angle = ball.Angle;
+            this.AngularVelocity = ball.AngularVelocity;
 
             this.fireball = ball.fireball;
 
-            this.ballsticking = ball.ballsticking;
+            this.sticking = ball.sticking;
             this.stickydifference = ball.stickydifference;
-            this.ballsticktimeleft = ball.ballsticktimeleft;
+            this.stickTimeLeft_ms = ball.stickTimeLeft_ms;
 
             smash = ball.smash;
             damage = ball.damage;
@@ -84,31 +84,13 @@ namespace BallBusterX
         public float SmashAngle;
         public float SmashAngleV = 1200;
 
-        private float ballangle; // rotational angle
-
         public Vector2 BallCenter => new Vector2(ballx + ballw / 2, bally + ballh / 2);
 
-        public float Ballangle
-        {
-            get { return ballangle; }
-            set
-            {
-                ballangle = value;
-            }
-        }
+        public float Angle { get; set; }
 
-        private float ballvrot; // rotational velocity
+        public float AngularVelocity { get; set; }
 
-        public float Ballvrot
-        {
-            get { return ballvrot; }
-            set
-            {
-                ballvrot = value;
-            }
-        }
-
-        public double timetonextfade;
+        public double timeToNextFade_ms;
 
         public int damage;  // damage done by the ball when it hits something
 
@@ -116,9 +98,9 @@ namespace BallBusterX
         public bool smash;
 
 
-        public bool ballsticking;
+        public bool sticking;
         public float stickydifference;
-        public double ballsticktimeleft;
+        public double stickTimeLeft_ms;
 
         public Color color;
 
@@ -170,15 +152,16 @@ namespace BallBusterX
         public void update(GameTime time)
         {
             float time_s = (float)time.ElapsedGameTime.TotalSeconds;
+            float time_ms = time_s * 1000;
 
-            ballsticktimeleft -= time_s;
-            timetonextfade -= time_s;
+            stickTimeLeft_ms -= time_ms;
+            timeToNextFade_ms -= time_ms;
 
-            if (!ballsticking)
-                Ballangle += ballvrot * time_s;
+            if (!sticking)
+                Angle += AngularVelocity * time_s;
 
-            if (ballangle > 360) Ballangle -= 360.0f;
-            if (ballangle < -360) ballangle += 360.0f;
+            if (Angle > 360) Angle -= 360.0f;
+            if (Angle < -360) Angle += 360.0f;
 
             SmashAngle += SmashAngleV * time_s;
 
@@ -206,9 +189,9 @@ namespace BallBusterX
 
 
             // don't collide with balls that are stuck if we are moving up
-            if (ballsticking && otherBall.ballvy < 0)
+            if (sticking && otherBall.ballvy < 0)
                 return false;
-            else if (ballvy < 0 && otherBall.ballsticking)
+            else if (ballvy < 0 && otherBall.sticking)
                 return false;
 
             // check to see if actual collision

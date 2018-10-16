@@ -33,7 +33,7 @@ namespace BallBusterX
             x = ball.ballx;
             y = ball.bally;
 
-            angle = ball.Ballangle;
+            angle = ball.Angle;
 
             vx = vy = 0;
 
@@ -45,7 +45,7 @@ namespace BallBusterX
             vx = random.Next(-max, max + 1);
             vy = random.Next(-max, max + 1);
 
-            if (ball.ballsticking)
+            if (ball.sticking)
                 vy += -45;
 
         }

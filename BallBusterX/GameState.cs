@@ -262,7 +262,7 @@ namespace BallBusterX
                 {
                     myball = balls[i];
 
-                    if (!myball.ballsticking)
+                    if (!myball.sticking)
                     {
                         //delete balls[i];
                         balls.RemoveAt(i);
@@ -271,7 +271,7 @@ namespace BallBusterX
                     }
                     else
                     {
-                        myball.ballsticktimeleft = 4000;
+                        myball.stickTimeLeft_ms = 4000;
                     }
 
                 }
@@ -356,9 +356,9 @@ namespace BallBusterX
 
                 if (myball.fireball)// && !myball.ballsticking)
                 {
-                    if (myball.timetonextfade < 0)
+                    if (myball.timeToNextFade_ms < 0)
                     {
-                        myball.timetonextfade = 10;
+                        myball.timeToNextFade_ms = 10;
 
                         dropFadeBall(myball);
                     }
@@ -366,7 +366,7 @@ namespace BallBusterX
 
 
                 // doing collision checks for bricks first to determine where the ball hit it.
-                if (myball.ballsticking == false)
+                if (myball.sticking == false)
                 {
 
                     int i;
@@ -497,7 +497,7 @@ namespace BallBusterX
                     myball.ballvx = -myball.ballvx;
                     myball.ballx = 740 - myball.ballw;
                 }
-                if (myball.bally < 10 && !myball.ballsticking)
+                if (myball.bally < 10 && !myball.sticking)
                 {
                     if (myball.ballvy < 0) myball.ballvy = -myball.ballvy;
 
@@ -517,7 +517,7 @@ namespace BallBusterX
                 // balls that are low
                 if (attractMode)
                 {
-                    if (myball.bally < paddley + paddleh && !badBall && !myball.ballsticking &&
+                    if (myball.bally < paddley + paddleh && !badBall && !myball.sticking &&
                         (myball.ballvy > 0 && myball.bally > 300))
                     {
                         if (lowestball == -1)
@@ -575,7 +575,7 @@ namespace BallBusterX
                     // set the rotational velocity of the ball, so the surface of the ball
                     // has the tangential velocity proportionate to that of the paddle.
                     // negative sign because paddle is under the ball.
-                    myball.Ballvrot = -0.1f * 2 * paddleVelocity / myball.ballw * 180 / (float)(Math.PI);
+                    myball.AngularVelocity = -0.1f * 2 * paddleVelocity / myball.ballw * 180 / (float)(Math.PI);
 
                     if (myball.ballvy > 0)
                         changeVY = true;
@@ -598,7 +598,7 @@ namespace BallBusterX
 
 
 
-                    if (changeVY && !myball.ballsticking)
+                    if (changeVY && !myball.sticking)
                     {
                         // check for powerups
                         if (fireball)
@@ -619,14 +619,14 @@ namespace BallBusterX
 
 
                     // if you have the stick power up.....
-                    if ((stickypaddle && myball.ballsticking == false) ||
+                    if ((stickypaddle && myball.sticking == false) ||
                         (transitionout && ballStickCount == 0))
                     {
-                        myball.ballsticking = true;
+                        myball.sticking = true;
                         ballStickCount++;
 
                         myball.stickydifference = myball.ballx - paddlex;
-                        myball.ballsticktimeleft = 4000;
+                        myball.stickTimeLeft_ms = 4000;
                     }
 
 
@@ -634,15 +634,15 @@ namespace BallBusterX
 
                 // if the ball is sticking, make sure to update it's position and 
                 // check to see if it should automagically be released.
-                if (myball.ballsticking)
+                if (myball.sticking)
                 {
 
                     myball.ballx = paddlex + myball.stickydifference;
                     myball.bally = paddley - myball.ballh;
 
-                    if (myball.ballsticktimeleft <= 0 && !transitionout)
+                    if (myball.stickTimeLeft_ms <= 0 && !transitionout)
                     {
-                        myball.ballsticking = false;
+                        myball.sticking = false;
                         ballStickCount--;
                     }
 
@@ -650,7 +650,7 @@ namespace BallBusterX
                     {
                         if (random.NextDouble() < 0.1)
                         {
-                            myball.ballsticking = false;
+                            myball.sticking = false;
                             ballStickCount--;
                         }
 
@@ -990,7 +990,7 @@ namespace BallBusterX
 
                     for (int k = 0; k < spikes; k++)
                     {
-                        img.spike.RotationAngleDegrees = myball.Ballangle + angle * k;
+                        img.spike.RotationAngleDegrees = myball.Angle + angle * k;
                         img.spike.Draw(spriteBatch, new Vector2(x, y));
                     }
                 }
@@ -1161,7 +1161,7 @@ namespace BallBusterX
 
         public void DeleteBall(int myball)
         {
-            if (balls[myball].ballsticking)
+            if (balls[myball].sticking)
                 ballStickCount--;
 
             balls.RemoveAt(myball);
@@ -1495,7 +1495,7 @@ namespace BallBusterX
                         CBall myball = balls[i];
                         CBall ball1, ball2;
 
-                        if (myball.ballsticking)
+                        if (myball.sticking)
                             continue;
 
                         ball1 = addBall(myball);
@@ -1536,8 +1536,8 @@ namespace BallBusterX
                         ball2.ballvx = vel * (float)Math.Cos(angle - boostAngle);
                         ball2.ballvy = vel * (float)Math.Sin(angle - boostAngle);
 
-                        ball1.ballsticking = false;
-                        ball2.ballsticking = false;
+                        ball1.sticking = false;
+                        ball2.sticking = false;
 
                     }
                 }
@@ -1584,7 +1584,7 @@ namespace BallBusterX
                     {
                         for (int i = 0; i < balls.Count; i++)
                         {
-                            if (balls[i].ballsticking)
+                            if (balls[i].sticking)
                                 balls[i].fireball = true;
                         }
                     }
@@ -1691,7 +1691,7 @@ namespace BallBusterX
                     {
                         for (int i = 0; i < balls.Count; i++)
                         {
-                            if (balls[i].ballsticking)
+                            if (balls[i].sticking)
                                 balls[i].setDamage(balls[i].damage + CBall.powIncrement);
                         }
                     }
@@ -1706,7 +1706,7 @@ namespace BallBusterX
                     {
                         for (int i = 0; i < balls.Count; i++)
                         {
-                            if (balls[i].ballsticking)
+                            if (balls[i].sticking)
                                 balls[i].smash = true;
                         }
                     }
@@ -1754,7 +1754,7 @@ namespace BallBusterX
                         {
                             CBall myball = balls[i];
 
-                            if (myball.ballsticking)
+                            if (myball.sticking)
                             {
                                 myball.fireball = false;
                                 myball.setDamage(100);
@@ -1821,7 +1821,7 @@ namespace BallBusterX
                 int i;
                 for (i = 0; i < balls.Count; i++)
                 {
-                    if (balls[i].ballsticking)
+                    if (balls[i].sticking)
                     {
                         // the formula is to keep the balls at the same ratio of distance
                         // from the edge of the paddle to the size of the paddle
@@ -2717,9 +2717,9 @@ namespace BallBusterX
         {
             for (int i = 0; i < balls.Count; i++)
             {
-                if (balls[i].ballsticking)
+                if (balls[i].sticking)
                 {
-                    balls[i].ballsticking = false;
+                    balls[i].sticking = false;
                     //balls[i].bally -= blockscrolly;	// correct for paddle moving up
                     ballStickCount--;
                 }

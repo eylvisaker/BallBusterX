@@ -9,7 +9,7 @@ projectRoot=`pwd`
 tmpRoot=tmp
 tmpDir="$tmpRoot/$projectName"
 
-if [[ $version -neq "" ]]; then
+if [[ ! -z "$version" ]]; then
   $version="-$version"
 fi
 

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-mono bin\BallBusterX.exe
+mono lib/BallBusterX.exe
 

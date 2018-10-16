@@ -1,11 +1,18 @@
+#
+# Builds the files that will be used for the package-wrap step.
+#
 param (
 	[string] $version,
   [string] $destDir = "Output"
 )
 
+if ($version -eq "") {
+  echo "Pass -version to supply a version number."
+}
+
 if ($version -ne "") { $version = "-$version" }
 
-function CreatePackage($sourceDir, $packageName)
+function CreateZipFile($sourceDir, $packageName)
 {
 	$destination = "$($destDir)\$($packageName).zip"
 	
@@ -23,11 +30,8 @@ $dummy = New-Item -ItemType Directory -Force -Path $destDir
 
 New-Item -ItemType Directory -Force -Path "temp-package"
 
-Copy-Item "BallBusterX.Desktop\bin\DesktopGL\AnyCPU\Release" -Destination "temp-package\Windows" -Recurse
-Copy-Item "BallBusterX.Desktop\bin\DesktopGL\AnyCPU\Release" -Destination "temp-package\Linux\bin" -Recurse
-Copy-Item "Linux\*" -Destination "temp-package\Linux"
+Copy-Item "BallBusterX.Desktop\bin\DesktopGL\AnyCPU\Release" -Destination "temp-package\Desktop" -Recurse
 
-CreatePackage "temp-package\Windows" "BallBusterX_Windows$version"
-CreatePackage "temp-package\Linux" "BallBusterX_Linux$version"
+CreateZipFile "temp-package\Windows" "BallBusterX_Desktop$version"
 
 "Packaging complete."

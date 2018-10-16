@@ -3,7 +3,7 @@
 #
 param (
 	[string] $version,
-  [string] $sourceDir = "Package"
+  [string] $sourceDir = "Package",
   [string] $destDir = "Output"
 )
 

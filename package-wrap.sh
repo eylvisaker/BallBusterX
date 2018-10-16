@@ -9,21 +9,22 @@ projectRoot=`pwd`
 tmpRoot=tmp
 tmpDir="$tmpRoot/$projectName"
 
-if [[ ! -z "$version" ]]; then
-  $version="-$version"
-fi
-
 echo "Packaging $projectName v$version"
 echo "Using source directory $sourceDir"
 echo "and destination directory $destDir"
 
+if [ -n "$version" ]; then
+  version="-$version"
+fi
+
 mkdir -p $destDir
 mkdir -p $tmpDir/lib
 
-unzip "$sourceDir/$projectName(version).zip" -d "$tmpDir/lib"
+unzip -o "$sourceDir/${projectName}_Desktop${version}.zip" -d "$tmpDir/lib"
 
 cp Linux/* $tmpDir
 
 cd $tmpRoot
 
-tar zcvf $projectName $projectRoot/$destDir/$projectName.tar.gz
+tar zcvf "$projectRoot/$destDir/$projectName.tar.gz" ./$projectName
+

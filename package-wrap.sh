@@ -9,18 +9,20 @@ projectRoot=`pwd`
 tmpRoot=tmp
 tmpDir="$tmpRoot/$projectName"
 
-if [[ $version != "" ]]; then
+if [[ $version -neq "" ]]; then
   $version="-$version"
 fi
 
-mkdir -p $destDir
+echo "Packaging $projectName v$version"
+echo "Using source directory $sourceDir"
+echo "and destination directory $destDir"
 
+mkdir -p $destDir
 mkdir -p $tmpDir/lib
 
 unzip "$sourceDir/$projectName(version).zip" -d "$tmpDir/lib"
 
 cp Linux/* $tmpDir
-
 
 cd $tmpRoot
 

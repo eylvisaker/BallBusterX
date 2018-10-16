@@ -18,7 +18,6 @@ function CreateZipFile($sourceDir, $packageName)
 	
 	if (Test-Path $destination) { Remove-Item $destination }
 	
-	"Creating $destination"
 	[IO.Compression.ZipFile]::CreateFromDirectory($sourceDir, $destination)
 }
 
@@ -28,10 +27,6 @@ $dummy = New-Item -ItemType Directory -Force -Path $destDir
 
 .\Build.ps1 -config Release
 
-New-Item -ItemType Directory -Force -Path "temp-package"
+CreateZipFile "BallBusterX.Desktop\bin\DesktopGL\AnyCPU\Release" "BallBusterX_Desktop$version"
 
-Copy-Item "BallBusterX.Desktop\bin\DesktopGL\AnyCPU\Release" -Destination "temp-package\Desktop" -Recurse
-
-CreateZipFile "temp-package\Windows" "BallBusterX_Desktop$version"
-
-"Packaging complete."
+Write-Output "Packaging complete."

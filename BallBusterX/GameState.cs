@@ -827,7 +827,7 @@ namespace BallBusterX
                 paddleVelocity = attractvelocity;
             }
 
-            //DropDoorIfPlayerSucks();
+            DropDoorIfPlayerSucks(time);
 
             CheckLevelCompleteCondition();
         }

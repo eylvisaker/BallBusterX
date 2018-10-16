@@ -34,7 +34,7 @@ namespace BallBusterX.Scenes
             // basic level bonus for completing a level
             bonus = 100;
 
-            TimeSpan levelTime = TimeSpan.FromMilliseconds(gameState.levelTime);
+            TimeSpan levelTime = TimeSpan.FromMilliseconds(gameState.levelTime_ms);
             timeString = $"{levelTime.Minutes}:{levelTime.Seconds:00}";
 
             //timeString = (minutes) + ":";

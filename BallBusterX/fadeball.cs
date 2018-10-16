@@ -30,8 +30,8 @@ namespace BallBusterX
         {
             alpha = 0.75f;
 
-            x = ball.ballx;
-            y = ball.bally;
+            x = ball.BallCenter.X;
+            y = ball.BallCenter.Y;
 
             angle = ball.Angle;
 

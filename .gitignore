@@ -2,6 +2,7 @@
 bin/
 obj/
 .*.swp
+*.shproj.user
 /packages/
 /Output/
 /TestReport/

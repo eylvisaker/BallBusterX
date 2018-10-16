@@ -222,7 +222,7 @@ namespace BallBusterX.Scenes
             // check to see if attract mode died or won.
             if (game.blocks.Count <= game.uncountedBlocks
                 || game.balls.Count == 0
-                || game.levelTime > 100000
+                || game.levelTime_ms > 100000
                 || beginningChanged)
             {
                 if (beginningChanged)

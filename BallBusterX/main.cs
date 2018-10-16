@@ -824,7 +824,7 @@ namespace BallBusterX
             }
 
             // Draw powerups that are in effect:
-            //DrawPowerupsInEffect();
+            DrawPowerupsInEffect();
 
 
             // fade the screen to white if we are transitioning out

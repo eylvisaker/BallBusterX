@@ -26,5 +26,5 @@ cp Linux/* $tmpDir
 
 cd $tmpRoot
 
-tar zcvf "$projectRoot/$destDir/$projectName.tar.gz" ./$projectName
+tar zcvf "$projectRoot/$destDir/${projectName}_Linux${version}.tar.gz" ./$projectName
 

@@ -20,7 +20,7 @@ echo "and destination directory $destDir"
 mkdir -p $destDir
 mkdir -p $tmpDir/lib
 
-unzip "$sourceDir/$projectName(version).zip" -d "$tmpDir/lib"
+unzip "$sourceDir/$projectName$(version).zip" -d "$tmpDir/lib"
 
 cp Linux/* $tmpDir
 

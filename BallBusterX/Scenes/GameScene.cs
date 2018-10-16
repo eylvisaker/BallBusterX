@@ -38,7 +38,7 @@ namespace BallBusterX.Scenes
             keyboard = new KeyboardEvents();
             keyboard.KeyUp += Keyboard_KeyUp;
 
-            InitializeLevel();
+            InitializeLevel(true);
         }
 
         public event Action Pause;
@@ -73,9 +73,9 @@ namespace BallBusterX.Scenes
             gameState.MouseClick();
         }
 
-        private void InitializeLevel()
+        public void InitializeLevel(bool resetPowerups)
         {
-            gameState.initLevel(true);
+            gameState.initLevel(resetPowerups);
 
             song = PlayRandomSong();
         }
@@ -91,6 +91,7 @@ namespace BallBusterX.Scenes
             if (config.PlayMusic)
             {
                 MediaPlayer.Play(selectedSong);
+                MediaPlayer.IsRepeating = true;
             }
 
             return selectedSong;

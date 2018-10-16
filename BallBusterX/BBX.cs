@@ -35,10 +35,10 @@ namespace BallBusterX
             scenes.Add(gameScene);
 
             gameScene.Pause += Pause;
-            gameScene.StageComplete += () => StageComplete(gameState);
+            gameScene.StageComplete += () => StageComplete(gameState, gameScene);
         }
 
-        private void StageComplete(GameState gameState)
+        private void StageComplete(GameState gameState, GameScene gameScene)
         {
             var completeScene = bbxFactory.CreateLevelCompleteScene(gameState);
 
@@ -46,7 +46,7 @@ namespace BallBusterX
 
             completeScene.SceneEnd += (_, __) =>
             {
-                gameState.initLevel(false);
+                gameScene.InitializeLevel(false);
             };
         }
 

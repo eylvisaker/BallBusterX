@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace BallBusterX
 {
@@ -23,10 +24,12 @@ namespace BallBusterX
         private bool doLighting = true;
         private float deathAnimation;
 
+        private float lowBlockTimeLeft_ms;
+
         /// <summary>
         /// Total time this level has been running in milliseconds.
         /// </summary>
-        public double levelTime;
+        public float levelTime_ms;
 
         // the variables here are REALLY sloppy, sorry......... :P
         public string gamemode;
@@ -35,6 +38,7 @@ namespace BallBusterX
 
         public int levelChange;
         private readonly Texture2D whiteTexture;
+        private readonly Effect lightingEffect;
         public int powerupLeft = 0;
         public int powerupTop = 0;
 
@@ -49,21 +53,21 @@ namespace BallBusterX
 
         public int ballStickCount;
 
-        [Obsolete("Use catchbluetimeleft, catchredtimeleft instead")]
+        [Obsolete("Use catchbluetimeleft, catchredtimeleft instead", true)]
         public int catchbluestart, catchredstart;
 
-        [Obsolete("Use blastertimeleft instead")]
+        [Obsolete("Use blastertimeleft instead", true)]
         public int blasterstart;
-        [Obsolete("Use fireballstart instead")]
+        [Obsolete("Use fireballtimeleft instead", true)]
         public int fireballstart;
-        [Obsolete("Use superstickytimeleft instead")]
+        [Obsolete("Use superstickytimeleft instead", true)]
         public int superstickystart;
-        public double superstickytimeleft;
-        public double fireballtimeleft;
-        public double blastertimeleft;
-        public double catchbluetimeleft, catchredtimeleft;
-        public double powtimeleft;
-        public double smashtimeleft;
+        public float superstickytimeleft_s;
+        public float fireballtimeleft_s;
+        public float blastertimeleft_s;
+        public float catchbluetimeleft_s, catchredtimeleft_s;
+        public float powtimeleft_s;
+        public float smashtimeleft_s;
 
         [Obsolete("Use powtimeleft instead")]
         public int powstart;
@@ -131,14 +135,14 @@ namespace BallBusterX
         public float basePaddleImbueV; // ordinary velocity the paddle gives
         public float basePaddleImbueVStart, basePaddleImbueVEnd;
 
-        public struct lastPowerup
+        public class LastPowerup
         {
-            public Sprite pu;
-            [Obsolete("This is unused?")]
-            public int time;
+            public bool Show;
+            public Sprite PowerUp;
+            public float timeLeft_s;
         }
 
-        public List<lastPowerup> lastPowerups = new List<lastPowerup>();
+        public List<LastPowerup> lastPowerups = new List<LastPowerup>();
         public List<CBlock> blocks = new List<CBlock>();
         public List<CBlockPart> blockparts = new List<CBlockPart>();
         public List<CFlash> flashes = new List<CFlash>();
@@ -155,7 +159,12 @@ namespace BallBusterX
 
         public Vector2 PaddlePos => new Vector2(paddlex, paddley);
 
-        public GameState(GraphicsDevice device, CImage img, CSound snd, IContentProvider content, WorldCollection worlds, BBXConfig config)
+        public GameState(GraphicsDevice device, 
+                         CImage img, 
+                         CSound snd, 
+                         IContentProvider content, 
+                         WorldCollection worlds, 
+                         BBXConfig config)
         {
             this.device = device;
             this.img = img;
@@ -181,7 +190,7 @@ namespace BallBusterX
             basePaddleImbueVStart = 325;
             basePaddleImbueVEnd = 425;
 
-            transdelay = 100; 
+            transdelay = 100;
 
             playmusic = true;
             bgspeed = 50.0f;
@@ -193,6 +202,7 @@ namespace BallBusterX
             levelChange = 1;
 
             whiteTexture = content.Load<Texture2D>("imgs/white");
+            lightingEffect = content.Load<Effect>("effects/lighting");
         }
 
 
@@ -206,6 +216,7 @@ namespace BallBusterX
         private readonly GraphicsDevice device;
         private CImage img;
         private float time_s;
+        private LightParameters lights = new LightParameters();
         private readonly CSound snd;
         private readonly IContentProvider content;
         private readonly Font font;
@@ -215,12 +226,13 @@ namespace BallBusterX
 
         public void initLevel(bool resetPowerups)
         {
-            levelTime = 0;
+            levelTime_ms = 0;
             stageComplete = false;
             transitionout = false;
             gameover = false;
             dying = false;
 
+            lowBlockTimeLeft_ms = 20000;
             transcount = 0;
             paddley = 560;
             paddlerot = 0.0f;
@@ -262,7 +274,7 @@ namespace BallBusterX
                 {
                     myball = balls[i];
 
-                    if (!myball.ballsticking)
+                    if (!myball.sticking)
                     {
                         //delete balls[i];
                         balls.RemoveAt(i);
@@ -271,7 +283,7 @@ namespace BallBusterX
                     }
                     else
                     {
-                        myball.ballsticktimeleft = 4000;
+                        myball.stickTimeLeft_ms = 4000;
                     }
 
                 }
@@ -313,7 +325,7 @@ namespace BallBusterX
 
             if (!transitionout)
             {
-                levelTime += time.ElapsedGameTime.TotalMilliseconds;
+                levelTime_ms += (float)time.ElapsedGameTime.TotalMilliseconds;
             }
 
             if (basePaddleImbueV < basePaddleImbueVEnd)
@@ -339,6 +351,11 @@ namespace BallBusterX
                 balls.Sort(ballcheck);
             }
 
+            foreach (var lpu in lastPowerups)
+            {
+                lpu.timeLeft_s -= time_s;
+            }
+
             int j;
             int lowestball = -1;
             bool badBall = false;
@@ -356,9 +373,9 @@ namespace BallBusterX
 
                 if (myball.fireball)// && !myball.ballsticking)
                 {
-                    if (myball.timetonextfade < 0)
+                    if (myball.timeToNextFade_ms < 0)
                     {
-                        myball.timetonextfade = 10;
+                        myball.timeToNextFade_ms = 10;
 
                         dropFadeBall(myball);
                     }
@@ -366,7 +383,7 @@ namespace BallBusterX
 
 
                 // doing collision checks for bricks first to determine where the ball hit it.
-                if (myball.ballsticking == false)
+                if (myball.sticking == false)
                 {
 
                     int i;
@@ -497,7 +514,7 @@ namespace BallBusterX
                     myball.ballvx = -myball.ballvx;
                     myball.ballx = 740 - myball.ballw;
                 }
-                if (myball.bally < 10 && !myball.ballsticking)
+                if (myball.bally < 10 && !myball.sticking)
                 {
                     if (myball.ballvy < 0) myball.ballvy = -myball.ballvy;
 
@@ -517,7 +534,7 @@ namespace BallBusterX
                 // balls that are low
                 if (attractMode)
                 {
-                    if (myball.bally < paddley + paddleh && !badBall && !myball.ballsticking &&
+                    if (myball.bally < paddley + paddleh && !badBall && !myball.sticking &&
                         (myball.ballvy > 0 && myball.bally > 300))
                     {
                         if (lowestball == -1)
@@ -575,7 +592,7 @@ namespace BallBusterX
                     // set the rotational velocity of the ball, so the surface of the ball
                     // has the tangential velocity proportionate to that of the paddle.
                     // negative sign because paddle is under the ball.
-                    myball.Ballvrot = -0.1f * 2 * paddleVelocity / myball.ballw * 180 / (float)(Math.PI);
+                    myball.AngularVelocity = -0.1f * 2 * paddleVelocity / myball.ballw * 180 / (float)(Math.PI);
 
                     if (myball.ballvy > 0)
                         changeVY = true;
@@ -598,7 +615,7 @@ namespace BallBusterX
 
 
 
-                    if (changeVY && !myball.ballsticking)
+                    if (changeVY && !myball.sticking)
                     {
                         // check for powerups
                         if (fireball)
@@ -619,14 +636,14 @@ namespace BallBusterX
 
 
                     // if you have the stick power up.....
-                    if ((stickypaddle && myball.ballsticking == false) ||
+                    if ((stickypaddle && myball.sticking == false) ||
                         (transitionout && ballStickCount == 0))
                     {
-                        myball.ballsticking = true;
+                        myball.sticking = true;
                         ballStickCount++;
 
                         myball.stickydifference = myball.ballx - paddlex;
-                        myball.ballsticktimeleft = 4000;
+                        myball.stickTimeLeft_ms = 4000;
                     }
 
 
@@ -634,15 +651,15 @@ namespace BallBusterX
 
                 // if the ball is sticking, make sure to update it's position and 
                 // check to see if it should automagically be released.
-                if (myball.ballsticking)
+                if (myball.sticking)
                 {
 
                     myball.ballx = paddlex + myball.stickydifference;
                     myball.bally = paddley - myball.ballh;
 
-                    if (myball.ballsticktimeleft <= 0 && !transitionout)
+                    if (myball.stickTimeLeft_ms <= 0 && !transitionout)
                     {
-                        myball.ballsticking = false;
+                        myball.sticking = false;
                         ballStickCount--;
                     }
 
@@ -650,7 +667,7 @@ namespace BallBusterX
                     {
                         if (random.NextDouble() < 0.1)
                         {
-                            myball.ballsticking = false;
+                            myball.sticking = false;
                             ballStickCount--;
                         }
 
@@ -677,8 +694,10 @@ namespace BallBusterX
             updateBlockParts(time);
             updateFlashes(time);
             updatePowerUps(time);
+            UpdateCaughtPowerUps(time);
             updateScoreBytes(time);
             updateFadeBalls(time);
+            UpdateLastPowerUps(time);
             //updateEnemies();
 
 
@@ -816,9 +835,35 @@ namespace BallBusterX
                 paddleVelocity = attractvelocity;
             }
 
-            //DropDoorIfPlayerSucks();
+            DropDoorIfPlayerSucks(time);
 
             CheckLevelCompleteCondition();
+        }
+
+        private void UpdateCaughtPowerUps(GameTime time)
+        {
+            var time_s = (float)time.ElapsedGameTime.TotalSeconds;
+
+            superstickytimeleft_s -= time_s;
+            fireballtimeleft_s -= time_s;
+            blastertimeleft_s -= time_s;
+            catchbluetimeleft_s -= time_s;
+            catchredtimeleft_s -= time_s;
+            powtimeleft_s -= time_s;
+            smashtimeleft_s -= time_s;
+
+            supersticky = superstickytimeleft_s >= 0;
+            fireball = fireballtimeleft_s >= 0;
+            blaster = blastertimeleft_s >= 0;
+            catchblue = catchbluetimeleft_s >= 0;
+            pow = powtimeleft_s >= 0;
+            smash = smashtimeleft_s >= 0;
+        }
+
+        private void UpdateLastPowerUps(GameTime time)
+        {
+            foreach (var pu in lastPowerups)
+                pu.timeLeft_s -= (float) time.ElapsedGameTime.TotalSeconds;
         }
 
         private void CheckLevelCompleteCondition()
@@ -831,21 +876,20 @@ namespace BallBusterX
             }
         }
 
-        //private void DropDoorIfPlayerSucks()
-        //{
-        //    // see if we should drop a door powerup
-        //    if (blocks.Count <= uncountedBlocks + 5 && !transitionout && !stageover)
-        //    {
-        //        if (lowblocktime == start)
-        //            lowblocktime = (int)Timing.TotalMilliseconds;
+        private void DropDoorIfPlayerSucks(GameTime time)
+        {
+            // see if we should drop a door powerup
+            if (blocks.Count <= uncountedBlocks + 5 && !transitionout && !stageComplete)
+            {
+                lowBlockTimeLeft_ms -= (float)time.ElapsedGameTime.TotalMilliseconds;
 
-        //        if (Timing.TotalMilliseconds - lowblocktime > 20000)
-        //        {
-        //            dropPowerUp(400, 10, PowerupTypes.DOOR);
-        //            lowblocktime += 15000;
-        //        }
-        //    }
-        //}
+                if (lowBlockTimeLeft_ms <= 0)
+                {
+                    dropPowerUp(400, 10, PowerupTypes.DOOR);
+                    lowBlockTimeLeft_ms += 15000;
+                }
+            }
+        }
 
 
         private void CheckDeathCondition(GameTime time)
@@ -893,8 +937,8 @@ namespace BallBusterX
             }
         }
 
-            // function for sort to sort balls by y.
-            private int ballcheck(CBall a, CBall b)
+        // function for sort to sort balls by y.
+        private int ballcheck(CBall a, CBall b)
         {
             return a.bally.CompareTo(b.bally);
         }
@@ -903,7 +947,6 @@ namespace BallBusterX
         public void DrawLevel(SpriteBatch spriteBatch)
         {
             //Display.Clear(Color.FromArgb(128, 0, 0, 128));
-            SetLightingForLevel();
 
             // Draw the background tile, scrolled
             DrawBackground(spriteBatch, bgy);
@@ -913,7 +956,17 @@ namespace BallBusterX
             spriteBatch.Draw(img.leftborder, new Vector2(0, 0), Color.White);
             spriteBatch.Draw(img.rightborder, new Vector2(735, 0), Color.White);
 
-            ActivateLighting();
+            spriteBatch.End();
+
+            SetLightParameters();
+
+            lightingEffect.Parameters["World"].SetValue(Matrix.Identity);
+            lightingEffect.Parameters["ViewProjection"] .SetValue(
+                Matrix.CreateOrthographicOffCenter(
+                    new Rectangle(0, 0, 800, 600), -1, 1));
+            lightingEffect.CurrentTechnique = lightingEffect.Techniques["Render"];
+
+            spriteBatch.Begin(effect: lightingEffect);
 
             // Draw blocks and Update their animations...
             DrawBlocks(spriteBatch);
@@ -921,15 +974,12 @@ namespace BallBusterX
             // we Draw the flash right on top of the block
             DrawFlashes(spriteBatch);
 
-
             // Draw all the other stuff except the balls here
             DrawBlockParts(spriteBatch);
             DrawFadeBalls(spriteBatch);
 
-            if (doLighting)
-            {
-                //AgateBuiltInShaders.Basic2DShader.Activate();
-            }
+            spriteBatch.End();
+            spriteBatch.Begin();
 
             // Draw paddle, other stuff, and lastly the balls.
             Sprite pad;
@@ -990,12 +1040,14 @@ namespace BallBusterX
 
                     for (int k = 0; k < spikes; k++)
                     {
-                        img.spike.RotationAngleDegrees = myball.Ballangle + angle * k;
+                        img.spike.RotationAngleDegrees = myball.Angle + angle * k;
                         img.spike.Draw(spriteBatch, new Vector2(x, y));
                     }
                 }
 
-                ballimg.Draw(spriteBatch, new Vector2(ballx, bally));
+                ballimg.DisplayAlignment = OriginAlignment.Center;
+                ballimg.SetRotationCenter(OriginAlignment.Center);
+                ballimg.Draw(spriteBatch, ballCenter);
 
                 if (myball.smash)
                 {
@@ -1038,7 +1090,7 @@ namespace BallBusterX
             }
 
             // Draw powerups that are in effect:
-            //DrawPowerupsInEffect();
+            DrawPowerupsInEffect(spriteBatch);
 
 
             // fade the screen to white if we are transitioning out
@@ -1112,56 +1164,40 @@ namespace BallBusterX
 
         }
 
-        private void SetLightingForLevel()
+        private void SetLightParameters()
         {
-            //if (Display.Caps.IsHardwareAccelerated == false)
-            //    return;
+            lights.Clear();
+            lights.AmbientLightColor = worlds[world].light;
 
-            //var shader = AgateBuiltInShaders.Lighting2D;
+            Color fireballColor = Color.Yellow;
+            Color ballColor = new Color(200, 200, 200);
 
-            //while (shader.Lights.Count > balls.Count)
-            //    shader.Lights.RemoveAt(shader.Lights.Count - 1);
+            for (int i = 0; i < LightParameters.MaxLights && i < balls.Count; i++)
+            {
+                var ball = balls[i];
 
-            //for (int i = 0; i < balls.Count; i++)
-            //{
-            //    Light light;
+                lights.SetLightEnable(i, true);
+                lights.SetLightPosition(i, new Vector3(ball.BallCenter, -1));
+                
+                if (ball.fireball)
+                {
+                    lights.SetLightColor(i, fireballColor);
+                    lights.SetAttenuation(i, new Vector3(0.01f, 0.006f, 0.00018f));
+                }
+                else
+                {
+                    lights.SetLightColor(i, ballColor);
+                    lights.SetAttenuation(i, new Vector3(0.01f, 0, 0.00025f));
+                }
+            }
 
-            //    if (i < shader.Lights.Count)
-            //        light = shader.Lights[i];
-            //    else
-            //    {
-            //        light = new Light();
-            //        shader.Lights.Add(light);
-            //    }
-
-            //    if (balls[i].fireball)
-            //    {
-            //        light.Position = new Vector3(balls[i].ballx, balls[i].bally, -1);
-            //        light.DiffuseColor = Color.FromArgb(255, 255, 0);
-            //        light.AmbientColor = Color.FromArgb(64, 32, 0);
-
-            //        light.AttenuationConstant = 0.01f;
-            //        light.AttenuationLinear = 0.005f;
-            //        light.AttenuationQuadratic = 0.000001f;
-
-            //    }
-            //    else
-            //    {
-            //        light.Position = new Vector3(balls[i].ballx, balls[i].bally, -1);
-            //        light.DiffuseColor = Color.FromArgb(200, 200, 200);
-            //        light.AmbientColor = Color.Black;
-
-            //        light.AttenuationConstant = 0.01f;
-            //        light.AttenuationLinear = 0;
-            //        light.AttenuationQuadratic = 0.00001f;
-            //    }
-            //}
+            lights.ApplyTo(lightingEffect);
         }
 
 
         public void DeleteBall(int myball)
         {
-            if (balls[myball].ballsticking)
+            if (balls[myball].sticking)
                 ballStickCount--;
 
             balls.RemoveAt(myball);
@@ -1394,9 +1430,9 @@ namespace BallBusterX
                 lastPowerups.RemoveAt(0);
             }
 
-            lastPowerup pu = new lastPowerup();
+            LastPowerup pu = new LastPowerup();
 
-            pu.pu = powerup.icon;
+            pu.PowerUp = powerup.icon;
             // pu.time = Timeing.Now.whatever
 
             lastPowerups.Add(pu);
@@ -1472,7 +1508,7 @@ namespace BallBusterX
                     scoreGain = 50;
                     supersticky = true;
 
-                    superstickytimeleft = 30000;
+                    superstickytimeleft_s = 30;
                     break;
 
                 case PowerupTypes.MULTIBALL:
@@ -1495,7 +1531,7 @@ namespace BallBusterX
                         CBall myball = balls[i];
                         CBall ball1, ball2;
 
-                        if (myball.ballsticking)
+                        if (myball.sticking)
                             continue;
 
                         ball1 = addBall(myball);
@@ -1536,8 +1572,8 @@ namespace BallBusterX
                         ball2.ballvx = vel * (float)Math.Cos(angle - boostAngle);
                         ball2.ballvy = vel * (float)Math.Sin(angle - boostAngle);
 
-                        ball1.ballsticking = false;
-                        ball2.ballsticking = false;
+                        ball1.sticking = false;
+                        ball2.sticking = false;
 
                     }
                 }
@@ -1558,7 +1594,7 @@ namespace BallBusterX
                         setPaddleSize(50);
 
                     BBUtility.SWAP(ref catchblue, ref catchred);
-                    BBUtility.SWAP(ref catchbluestart, ref catchredstart);
+                    BBUtility.SWAP(ref catchbluetimeleft_s, ref catchredtimeleft_s);
 
                     scoreGain = 50;
 
@@ -1567,7 +1603,7 @@ namespace BallBusterX
                 case PowerupTypes.BLASTER:
 
                     blaster = true;
-                    blastertimeleft = 10000;
+                    blastertimeleft_s = 10;
 
                     scoreGain = 50;
 
@@ -1578,13 +1614,13 @@ namespace BallBusterX
                 case PowerupTypes.FIREBALL:
 
                     fireball = true;
-                    fireballtimeleft = 10000;
+                    fireballtimeleft_s = 10;
 
                     scoreGain = 50;
                     {
                         for (int i = 0; i < balls.Count; i++)
                         {
-                            if (balls[i].ballsticking)
+                            if (balls[i].sticking)
                                 balls[i].fireball = true;
                         }
                     }
@@ -1671,7 +1707,7 @@ namespace BallBusterX
 
                     scoreGain = 50;
                     catchblue = true;
-                    catchbluetimeleft = 30000;
+                    catchbluetimeleft_s = 30;
 
                     break;
 
@@ -1680,18 +1716,18 @@ namespace BallBusterX
                     scoreGain = 50;
                     catchred = true;
 
-                    catchredtimeleft = 30000;
+                    catchredtimeleft_s = 30;
                     break;
 
                 case PowerupTypes.POW:
 
                     scoreGain = 50;
                     pow = true;
-                    powtimeleft = 10000;
+                    powtimeleft_s = 10;
                     {
                         for (int i = 0; i < balls.Count; i++)
                         {
-                            if (balls[i].ballsticking)
+                            if (balls[i].sticking)
                                 balls[i].setDamage(balls[i].damage + CBall.powIncrement);
                         }
                     }
@@ -1702,11 +1738,11 @@ namespace BallBusterX
 
                     scoreGain = 50;
                     smash = true;
-                    smashtimeleft = 10000;
+                    smashtimeleft_s = 10;
                     {
                         for (int i = 0; i < balls.Count; i++)
                         {
-                            if (balls[i].ballsticking)
+                            if (balls[i].sticking)
                                 balls[i].smash = true;
                         }
                     }
@@ -1754,7 +1790,7 @@ namespace BallBusterX
                         {
                             CBall myball = balls[i];
 
-                            if (myball.ballsticking)
+                            if (myball.sticking)
                             {
                                 myball.fireball = false;
                                 myball.setDamage(100);
@@ -1821,7 +1857,7 @@ namespace BallBusterX
                 int i;
                 for (i = 0; i < balls.Count; i++)
                 {
-                    if (balls[i].ballsticking)
+                    if (balls[i].sticking)
                     {
                         // the formula is to keep the balls at the same ratio of distance
                         // from the edge of the paddle to the size of the paddle
@@ -2143,13 +2179,6 @@ namespace BallBusterX
                 mypowerup.icon.Color = mypowerup.Color;
                 mypowerup.icon.Scale = new Vector2(mypowerup.w, mypowerup.h);
                 mypowerup.icon.Draw(spriteBatch, mypowerup.position);
-
-                if (mypowerup.oldeffect == PowerupTypes.RANDOM)
-                {
-                    img.purandom.Color = mypowerup.Color;
-                    img.purandom.Scale = new Vector2(mypowerup.h, mypowerup.h);
-                    img.purandom.Draw(spriteBatch, mypowerup.position);
-                }
             }
         }
 
@@ -2206,6 +2235,8 @@ namespace BallBusterX
 
                 img.fireball.Alpha = fb.alpha;
                 img.fireball.RotationAngleDegrees = fb.angle;
+                img.fireball.DisplayAlignment = OriginAlignment.Center;
+                img.fireball.SetRotationCenter(OriginAlignment.Center);
                 img.fireball.Scale = new Vector2(fb.scale, fb.scale);
 
                 img.fireball.Draw(spriteBatch, fb.position);
@@ -2275,19 +2306,6 @@ namespace BallBusterX
 
                 }
             }
-        }
-
-        private void ActivateLighting()
-        {
-            //if (Display.Caps.IsHardwareAccelerated == false)
-            //    return;
-
-            //if (doLighting)
-            //{
-            //    var shader = AgateBuiltInShaders.Lighting2D;
-
-            //    shader.Activate();
-            //}
         }
 
         public int Score => thescore;
@@ -2717,9 +2735,9 @@ namespace BallBusterX
         {
             for (int i = 0; i < balls.Count; i++)
             {
-                if (balls[i].ballsticking)
+                if (balls[i].sticking)
                 {
-                    balls[i].ballsticking = false;
+                    balls[i].sticking = false;
                     //balls[i].bally -= blockscrolly;	// correct for paddle moving up
                     ballStickCount--;
                 }
@@ -2738,5 +2756,155 @@ namespace BallBusterX
                 DeleteBall(0);
         }
 
+        private void DrawPowerupsInEffect(SpriteBatch spriteBatch)
+        {
+            if (lastPowerups.Count > 0)
+            {
+                foreach (var lpu in lastPowerups.Where(x => x.Show))
+                {
+                    if (lpu.timeLeft_s < 0)
+                        lpu.Show = false;
+                }
+
+                if (lastPowerups.Count > 0)
+                {
+                    font.DrawText(spriteBatch, new Vector2(755, 10), "Last:");
+                }
+
+                powerupLeft = 755;
+                powerupTop = 10 + font.FontHeight;
+
+                foreach (var lpu in lastPowerups.Where(x => x.Show))
+                {
+                    lpu.PowerUp.Scale = new Vector2(1.0f, 1.0f);
+                    lpu.PowerUp.Alpha = 1.0f;
+                    lpu.PowerUp.Draw(spriteBatch, new Vector2(powerupLeft, powerupTop));
+
+                    powerupTop += 45;
+                }
+
+            }
+
+            powerupLeft = 755;
+            powerupTop = 545;
+
+            if (paddleImbueV > basePaddleImbueV + 25)
+                DrawPowerupInEffect(spriteBatch, img.pufastball);
+            else if (paddleImbueV < basePaddleImbueV - 25)
+                DrawPowerupInEffect(spriteBatch, img.puslowball);
+            else
+                DrawPowerupInEffect(spriteBatch, img.puregularspeed);
+
+            if (paddlew > 110)
+                DrawPowerupInEffect(spriteBatch, img.pupaddlelarge);
+            else if (paddlew < 90)
+                DrawPowerupInEffect(spriteBatch, img.pupaddlesmall);
+            else
+                DrawPowerupInEffect(spriteBatch, img.pupaddleregular);
+
+            if (supersticky)
+            {
+                DrawPowerupInEffect(spriteBatch, img.pusupersticky, superstickytimeleft_s);
+            }
+            else if (stickypaddle)
+            {
+                DrawPowerupInEffect(spriteBatch, img.pusticky);
+            }
+
+            if (blaster)
+            {
+                DrawPowerupInEffect(spriteBatch, img.publaster, blastertimeleft_s);
+
+                font.Size = 24;
+
+                // Draw flashing CLICK! above paddle
+                if (levelTime_ms % 200 < 100)
+                    font.Color = Color.Red;
+                else
+                    font.Color = Color.White;
+
+                font.TextAlignment = OriginAlignment.TopCenter;
+
+                font.DrawText(spriteBatch,
+                    new Vector2(400 + levelTime_ms % 3 - 2,
+                                paddley - 100 + levelTime_ms % 3 - 2),
+                    "Click!");
+
+                font.TextAlignment = OriginAlignment.TopLeft;
+
+                font.Color = Color.White;
+            }
+
+            if (fireball)
+            {
+                DrawPowerupInEffect(spriteBatch, img.pufireball, fireballtimeleft_s);
+            }
+
+            if (catchblue)
+            {
+                DrawPowerupInEffect(spriteBatch, img.pucatchblue, catchbluetimeleft_s);
+            }
+
+            if (catchred)
+            {
+                DrawPowerupInEffect(spriteBatch, img.pucatchred, catchredtimeleft_s);
+
+                if (catchredtimeleft_s < 0)
+                {
+                    // well, se used up the whole thing.  gain another 250 points.
+                    catchred = false;
+
+                    GainPoints(250, powerupLeft + 20, powerupTop + 20);
+                    snd.powerup.Play();
+                }
+
+            }
+
+
+            if (pow)
+            {
+                DrawPowerupInEffect(spriteBatch, img.pupow, powstart);
+            }
+
+            if (smash)
+            {
+                DrawPowerupInEffect(spriteBatch, img.pusmash, smashstart);
+            }
+        }
+
+        private void DrawPowerupInEffect(SpriteBatch spriteBatch, Sprite sprite)
+        {
+            DrawPowerupInEffect(spriteBatch, sprite, -1);
+        }
+
+        private void DrawPowerupInEffect(SpriteBatch spriteBatch, Sprite image, float timeRemaining_s)
+        {
+            TimeSpan ts = TimeSpan.FromSeconds(timeRemaining_s);
+            
+            string time = $"{ts.Minutes}:{ts.Seconds:00}";
+
+            image.Alpha = (1.0f);
+            image.Scale = new Vector2(1.0f, 1.0f);
+            image.Draw(spriteBatch, new Vector2(powerupLeft, powerupTop));
+
+            if (timeRemaining_s >= 0)
+            {
+                Size size = font.MeasureString(time);
+                int fw = size.Width;
+                int pos = powerupLeft + (40 - fw) / 2;
+
+
+                font.Color = Color.Black;
+                font.DrawText(spriteBatch, pos, powerupTop + 2, time);
+                font.DrawText(spriteBatch, pos, powerupTop + 4, time);
+                font.DrawText(spriteBatch, pos + 1, powerupTop + 3, time);
+                font.DrawText(spriteBatch, pos - 1, powerupTop + 3, time);
+
+                font.Color = Color.White;
+                font.DrawText(spriteBatch, pos, powerupTop + 3, time);
+            }
+
+            powerupTop -= 45;
+        }
     }
 }

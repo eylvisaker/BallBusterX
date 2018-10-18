@@ -202,15 +202,19 @@ namespace BallBusterX.Scenes
             beginningChanged = false;
         }
 
+        protected override void OnUpdateInput(IInputState input)
+        {
+        }
+
         protected override void OnUpdate(GameTime time)
         {
             base.OnUpdate(time);
 
-            clock += time.ElapsedGameTime.TotalMilliseconds;
-            timeSinceMouseMove += time.ElapsedGameTime.TotalMilliseconds;
-
             mouse.Update(time);
             keyboard.Update(time);
+
+            clock += time.ElapsedGameTime.TotalMilliseconds;
+            timeSinceMouseMove += time.ElapsedGameTime.TotalMilliseconds;
 
             game.UpdateLevel(time);
             UpdateTitle(time);
@@ -222,7 +226,7 @@ namespace BallBusterX.Scenes
             // check to see if attract mode died or won.
             if (game.blocks.Count <= game.uncountedBlocks
                 || game.balls.Count == 0
-                || game.levelTime > 100000
+                || game.levelTime_ms > 100000
                 || beginningChanged)
             {
                 if (beginningChanged)

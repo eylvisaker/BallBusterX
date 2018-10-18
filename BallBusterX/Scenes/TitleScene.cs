@@ -202,15 +202,19 @@ namespace BallBusterX.Scenes
             beginningChanged = false;
         }
 
+        protected override void OnUpdateInput(IInputState input)
+        {
+        }
+
         protected override void OnUpdate(GameTime time)
         {
             base.OnUpdate(time);
 
-            clock += time.ElapsedGameTime.TotalMilliseconds;
-            timeSinceMouseMove += time.ElapsedGameTime.TotalMilliseconds;
-
             mouse.Update(time);
             keyboard.Update(time);
+
+            clock += time.ElapsedGameTime.TotalMilliseconds;
+            timeSinceMouseMove += time.ElapsedGameTime.TotalMilliseconds;
 
             game.UpdateLevel(time);
             UpdateTitle(time);

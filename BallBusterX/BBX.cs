@@ -1,4 +1,6 @@
-﻿using AgateLib.Scenes;
+﻿using AgateLib.Diagnostics;
+using AgateLib.Diagnostics.Rendering;
+using AgateLib.Scenes;
 using Autofac;
 using BallBusterX.Scenes;
 using Microsoft.Xna.Framework;

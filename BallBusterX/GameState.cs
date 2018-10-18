@@ -38,6 +38,7 @@ namespace BallBusterX
 
         public int levelChange;
         private readonly Texture2D whiteTexture;
+        private readonly Effect lightingEffect;
         public int powerupLeft = 0;
         public int powerupTop = 0;
 
@@ -158,7 +159,12 @@ namespace BallBusterX
 
         public Vector2 PaddlePos => new Vector2(paddlex, paddley);
 
-        public GameState(GraphicsDevice device, CImage img, CSound snd, IContentProvider content, WorldCollection worlds, BBXConfig config)
+        public GameState(GraphicsDevice device, 
+                         CImage img, 
+                         CSound snd, 
+                         IContentProvider content, 
+                         WorldCollection worlds, 
+                         BBXConfig config)
         {
             this.device = device;
             this.img = img;
@@ -196,6 +202,7 @@ namespace BallBusterX
             levelChange = 1;
 
             whiteTexture = content.Load<Texture2D>("imgs/white");
+            lightingEffect = content.Load<Effect>("effects/lighting");
         }
 
 
@@ -209,6 +216,7 @@ namespace BallBusterX
         private readonly GraphicsDevice device;
         private CImage img;
         private float time_s;
+        private LightParameters lights = new LightParameters();
         private readonly CSound snd;
         private readonly IContentProvider content;
         private readonly Font font;
@@ -939,7 +947,6 @@ namespace BallBusterX
         public void DrawLevel(SpriteBatch spriteBatch)
         {
             //Display.Clear(Color.FromArgb(128, 0, 0, 128));
-            SetLightingForLevel();
 
             // Draw the background tile, scrolled
             DrawBackground(spriteBatch, bgy);
@@ -949,7 +956,17 @@ namespace BallBusterX
             spriteBatch.Draw(img.leftborder, new Vector2(0, 0), Color.White);
             spriteBatch.Draw(img.rightborder, new Vector2(735, 0), Color.White);
 
-            ActivateLighting();
+            spriteBatch.End();
+
+            SetLightParameters();
+
+            lightingEffect.Parameters["World"].SetValue(Matrix.Identity);
+            lightingEffect.Parameters["ViewProjection"] .SetValue(
+                Matrix.CreateOrthographicOffCenter(
+                    new Rectangle(0, 0, 800, 600), -1, 1));
+            lightingEffect.CurrentTechnique = lightingEffect.Techniques["Render"];
+
+            spriteBatch.Begin(effect: lightingEffect);
 
             // Draw blocks and Update their animations...
             DrawBlocks(spriteBatch);
@@ -957,15 +974,12 @@ namespace BallBusterX
             // we Draw the flash right on top of the block
             DrawFlashes(spriteBatch);
 
-
             // Draw all the other stuff except the balls here
             DrawBlockParts(spriteBatch);
             DrawFadeBalls(spriteBatch);
 
-            if (doLighting)
-            {
-                //AgateBuiltInShaders.Basic2DShader.Activate();
-            }
+            spriteBatch.End();
+            spriteBatch.Begin();
 
             // Draw paddle, other stuff, and lastly the balls.
             Sprite pad;
@@ -1150,50 +1164,34 @@ namespace BallBusterX
 
         }
 
-        private void SetLightingForLevel()
+        private void SetLightParameters()
         {
-            //if (Display.Caps.IsHardwareAccelerated == false)
-            //    return;
+            lights.Clear();
+            lights.AmbientLightColor = worlds[world].light;
 
-            //var shader = AgateBuiltInShaders.Lighting2D;
+            Color fireballColor = Color.Yellow;
+            Color ballColor = new Color(200, 200, 200);
 
-            //while (shader.Lights.Count > balls.Count)
-            //    shader.Lights.RemoveAt(shader.Lights.Count - 1);
+            for (int i = 0; i < LightParameters.MaxLights && i < balls.Count; i++)
+            {
+                var ball = balls[i];
 
-            //for (int i = 0; i < balls.Count; i++)
-            //{
-            //    Light light;
+                lights.SetLightEnable(i, true);
+                lights.SetLightPosition(i, new Vector3(ball.BallCenter, -1));
+                
+                if (ball.fireball)
+                {
+                    lights.SetLightColor(i, fireballColor);
+                    lights.SetAttenuation(i, new Vector3(0.01f, 0.006f, 0.00018f));
+                }
+                else
+                {
+                    lights.SetLightColor(i, ballColor);
+                    lights.SetAttenuation(i, new Vector3(0.01f, 0, 0.00025f));
+                }
+            }
 
-            //    if (i < shader.Lights.Count)
-            //        light = shader.Lights[i];
-            //    else
-            //    {
-            //        light = new Light();
-            //        shader.Lights.Add(light);
-            //    }
-
-            //    if (balls[i].fireball)
-            //    {
-            //        light.Position = new Vector3(balls[i].ballx, balls[i].bally, -1);
-            //        light.DiffuseColor = Color.FromArgb(255, 255, 0);
-            //        light.AmbientColor = Color.FromArgb(64, 32, 0);
-
-            //        light.AttenuationConstant = 0.01f;
-            //        light.AttenuationLinear = 0.005f;
-            //        light.AttenuationQuadratic = 0.000001f;
-
-            //    }
-            //    else
-            //    {
-            //        light.Position = new Vector3(balls[i].ballx, balls[i].bally, -1);
-            //        light.DiffuseColor = Color.FromArgb(200, 200, 200);
-            //        light.AmbientColor = Color.Black;
-
-            //        light.AttenuationConstant = 0.01f;
-            //        light.AttenuationLinear = 0;
-            //        light.AttenuationQuadratic = 0.00001f;
-            //    }
-            //}
+            lights.ApplyTo(lightingEffect);
         }
 
 
@@ -2308,19 +2306,6 @@ namespace BallBusterX
 
                 }
             }
-        }
-
-        private void ActivateLighting()
-        {
-            //if (Display.Caps.IsHardwareAccelerated == false)
-            //    return;
-
-            //if (doLighting)
-            //{
-            //    var shader = AgateBuiltInShaders.Lighting2D;
-
-            //    shader.Activate();
-            //}
         }
 
         public int Score => thescore;

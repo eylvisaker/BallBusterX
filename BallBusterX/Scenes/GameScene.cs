@@ -107,6 +107,10 @@ namespace BallBusterX.Scenes
             }
         }
 
+        protected override void OnUpdateInput(IInputState input)
+        {
+        }
+
         protected override void OnUpdate(GameTime time)
         {
             base.OnUpdate(time);

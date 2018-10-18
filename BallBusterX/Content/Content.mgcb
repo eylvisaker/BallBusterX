@@ -13,20 +13,11 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin sprites.yaml
-/copy:sprites.yaml
-
-#begin imgs/white.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:imgs/white.png
+#begin effects/lighting.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:effects/lighting.fx
 
 #begin imgs/arrow.png
 /importer:TextureImporter
@@ -75,6 +66,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:imgs/bblogo.png
+
+#begin imgs/bg1.JPG
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:imgs/bg1.JPG
 
 #begin imgs/bg-blue.png
 /importer:TextureImporter
@@ -231,18 +234,6 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:imgs/bg-space3.png
-
-#begin imgs/bg1.JPG
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:imgs/bg1.JPG
 
 #begin imgs/bigpaddle0.png
 /importer:TextureImporter
@@ -832,6 +823,30 @@
 /processorParam:TextureFormat=Color
 /build:imgs/topborder.png
 
+#begin imgs/vtlogo.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:imgs/vtlogo.png
+
+#begin imgs/white.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:imgs/white.png
+
 #begin imgs/xlogo1.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -1009,6 +1024,33 @@
 #begin lvls/worlds.cfg
 /copy:lvls/worlds.cfg
 
+#begin snd/bounce.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:snd/bounce.wav
+
+#begin snd/break.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:snd/break.wav
+
+#begin snd/ching.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:snd/ching.wav
+
+#begin snd/die.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:snd/die.wav
+
+#begin snd/music.credits
+/copy:snd/music.credits
+
 #begin snd/music/FastDance.ogg
 /importer:OggImporter
 /processor:SongProcessor
@@ -1045,33 +1087,6 @@
 /processorParam:Quality=Best
 /build:snd/music/SweetDreams.ogg
 
-#begin snd/bounce.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:snd/bounce.wav
-
-#begin snd/break.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:snd/break.wav
-
-#begin snd/ching.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:snd/ching.wav
-
-#begin snd/die.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:snd/die.wav
-
-#begin snd/music.credits
-/copy:snd/music.credits
-
 #begin snd/powerup.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
@@ -1093,15 +1108,6 @@
 /processorParam:Quality=Best
 /build:snd/zoom.wav
 
-#begin imgs/vtlogo.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:imgs/vtlogo.png
+#begin sprites.yaml
+/copy:sprites.yaml
 

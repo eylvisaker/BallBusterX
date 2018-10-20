@@ -8,7 +8,6 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace BallBusterX
 {
@@ -16,8 +15,7 @@ namespace BallBusterX
     {
         public Random random = new Random();
 
-        private const float maxPaddleImbueV = 1000.0f;
-        private const float minPaddleImbueV = 200.0f;
+        public Paddle paddle = new Paddle();
 
         public const int ballLimit = 100;
 
@@ -53,26 +51,13 @@ namespace BallBusterX
 
         public int ballStickCount;
 
-        [Obsolete("Use catchbluetimeleft, catchredtimeleft instead", true)]
-        public int catchbluestart, catchredstart;
-
-        [Obsolete("Use blastertimeleft instead", true)]
-        public int blasterstart;
-        [Obsolete("Use fireballtimeleft instead", true)]
-        public int fireballstart;
-        [Obsolete("Use superstickytimeleft instead", true)]
-        public int superstickystart;
         public float superstickytimeleft_s;
         public float fireballtimeleft_s;
         public float blastertimeleft_s;
-        public float catchbluetimeleft_s, catchredtimeleft_s;
+        public float catchbluetimeleft_s;
+        public float catchredtimeleft_s;
         public float powtimeleft_s;
         public float smashtimeleft_s;
-
-        [Obsolete("Use powtimeleft instead")]
-        public int powstart;
-        [Obsolete("Use smashtimeleft instead")]
-        public int smashstart;
 
         public Texture2D bgtile;
         public string bgFile;
@@ -117,7 +102,22 @@ namespace BallBusterX
 
         public double pauseTimer;
 
-        public float paddlex, paddley, paddlew, paddleh, paddlerot, paddlealpha;
+        //////////////////// TODO: Delete //////////////////////
+
+        public Vector2 PaddlePos => new Vector2(paddlex, paddley);
+
+        private const int standardPaddleWidth = 100;
+        private const float maxPaddleImbueV = 1000.0f;
+        private const float minPaddleImbueV = 200.0f;
+
+        public int paddleSizeIndex => paddle.PaddleSizeIndex;
+        public float paddleWidth => paddle.Width;
+        public float paddleh => paddle.Height;
+        public float paddlex => paddle.x;
+        public float paddleRotationAngle => paddle.RotationAngle;
+        public float paddleOpacity => paddle.Opacity;
+        public float paddley => paddle.y;
+
         public float paddleVelocity;   // velocity that the paddle is moving.
         public float _paddleImbueV;        // velocity the paddle gives to the balls
         public float paddleImbueV
@@ -134,7 +134,8 @@ namespace BallBusterX
 
         public float basePaddleImbueV; // ordinary velocity the paddle gives
         public float basePaddleImbueVStart, basePaddleImbueVEnd;
-
+        //////////////////// TODO: end delete //////////////////////
+        ///
         public class LastPowerup
         {
             public bool Show;
@@ -157,13 +158,12 @@ namespace BallBusterX
         private readonly BBXConfig config;
         public List<Highscore> highscores = new List<Highscore>();
 
-        public Vector2 PaddlePos => new Vector2(paddlex, paddley);
 
-        public GameState(GraphicsDevice device, 
-                         CImage img, 
-                         CSound snd, 
-                         IContentProvider content, 
-                         WorldCollection worlds, 
+        public GameState(GraphicsDevice device,
+                         CImage img,
+                         CSound snd,
+                         IContentProvider content,
+                         WorldCollection worlds,
                          BBXConfig config)
         {
             this.device = device;
@@ -174,12 +174,6 @@ namespace BallBusterX
             this.config = config;
 
             font = new Font(img.Fonts.Default);
-
-            paddlex = 350;
-            paddlew = 100;
-            paddleh = 20;
-            paddley = 560;
-            paddlealpha = 1.0f;
 
             blockPartLimit = 65;
             scoreByteLimit = 30;
@@ -217,6 +211,7 @@ namespace BallBusterX
         private CImage img;
         private float time_s;
         private LightParameters lights = new LightParameters();
+        private int paddleTargetWidth;
         private readonly CSound snd;
         private readonly IContentProvider content;
         private readonly Font font;
@@ -234,9 +229,7 @@ namespace BallBusterX
 
             lowBlockTimeLeft_ms = 20000;
             transcount = 0;
-            paddley = 560;
-            paddlerot = 0.0f;
-            paddlealpha = 1.0f;
+            paddle.ResetPosition();
             bgspeed = config.BackgroundScroll ? 50.0f : 0.0f;
 
             blockscrolly = 0;
@@ -295,7 +288,7 @@ namespace BallBusterX
                 {
                     myball = balls[i];
 
-                    myball.stickydifference = (i + 1) / (float)(num + 1) * paddlew;
+                    myball.stickydifference = ((i + 1) / (float)(num + 1) - 0.5f) * paddleWidth;
                 }
 
                 if (balls.Count == 0)
@@ -461,7 +454,7 @@ namespace BallBusterX
                         {
                             if (myball.collideWith(balls[k]) && !transitionout)
                             {
-                                snd.bounce.Play();
+                                snd.ballscollide.Play();
                             }
                         }
                     }
@@ -481,7 +474,7 @@ namespace BallBusterX
                             if (myball.collideWith(balls[k]))
                             {
                                 if (!transitionout)
-                                    snd.bounce.Play();
+                                    snd.ballscollide.Play();
                             }
                         }
 
@@ -534,8 +527,11 @@ namespace BallBusterX
                 // balls that are low
                 if (attractMode)
                 {
-                    if (myball.bally < paddley + paddleh && !badBall && !myball.sticking &&
-                        (myball.ballvy > 0 && myball.bally > 300))
+                    if (myball.bally < paddley + paddleh
+                        && !badBall
+                        && !myball.sticking
+                        && myball.ballvy > 0
+                        && myball.bally > 300)
                     {
                         if (lowestball == -1)
                             lowestball = j;
@@ -553,8 +549,8 @@ namespace BallBusterX
                     if (myball.ballvy > 0 || myball.bally > paddley)
                     {
                         // exponentially decaying attraction.  Not realistic, but hopefully it looks nice
-                        float distx = (paddlex + paddlew / 2 - (myball.ballx + myball.ballw / 2));
-                        float disty = (paddley - myball.bally);
+                        float distx = paddlex - myball.ballx;
+                        float disty = paddley - myball.bally;
 
                         float dist = (float)Math.Sqrt(distx * distx + disty * disty);
 
@@ -574,19 +570,43 @@ namespace BallBusterX
                     }
                 }
 
+                // if the ball is sticking, make sure to update it's position and 
+                // check to see if it should automagically be released.
+                if (myball.sticking)
+                {
+                    myball.ballx = paddle.x + myball.stickydifference;
+                    myball.bally = paddle.y - myball.ballh;
+
+                    if (myball.stickTimeLeft_ms <= 0 && !transitionout)
+                    {
+                        myball.sticking = false;
+                        ballStickCount--;
+                    }
+
+                    if (attractMode && powerups.Count == 0)
+                    {
+                        if (random.NextDouble() < 0.1)
+                        {
+                            myball.sticking = false;
+                            ballStickCount--;
+                        }
+
+                    }
+                }
+
 
                 // check the paddle
                 bool hit_paddle = true;
 
-                if (myball.ballx + myball.ballw < paddlex) hit_paddle = false;
-                else if (myball.ballx > paddlex + paddlew) hit_paddle = false;
-                else if (myball.bally + myball.ballh < paddley) hit_paddle = false;
-                else if (myball.bally > paddley + paddleh) hit_paddle = false;
+                if (myball.ballx + myball.Radius < paddle.HitBox.Left) hit_paddle = false;
+                else if (myball.ballx - myball.Radius > paddle.HitBox.Right) hit_paddle = false;
+                else if (myball.bally + myball.Radius < paddle.HitBox.Top) hit_paddle = false;
+                else if (myball.bally - myball.Radius > paddle.HitBox.Bottom) hit_paddle = false;
 
                 if (hit_paddle)
                 {
                     // the difference between the centers divided by paddle length * 2 gives number between -1 and 1... kinda
-                    float mydif = ((myball.ballx + (myball.ballw / 2)) - (paddlex + (paddlew / 2)));
+                    float mydif = myball.ballx - paddlex;
                     bool changeVY = false;
 
                     // set the rotational velocity of the ball, so the surface of the ball
@@ -597,7 +617,7 @@ namespace BallBusterX
                     if (myball.ballvy > 0)
                         changeVY = true;
 
-                    if (mydif != 0.0f) mydif /= paddlew;
+                    if (mydif != 0.0f) mydif /= paddleWidth;
                     mydif *= 2.0f;
 
                     if (mydif > 0.97f) mydif = 0.97f;
@@ -610,9 +630,6 @@ namespace BallBusterX
                     myball.ballvy = -paddleImbueV * (float)Math.Cos(mydif);
                     myball.ballvx = paddleImbueV * (float)Math.Sin(mydif);
                     myball.ballv = paddleImbueV;
-
-
-
 
 
                     if (changeVY && !myball.sticking)
@@ -645,33 +662,6 @@ namespace BallBusterX
                         myball.stickydifference = myball.ballx - paddlex;
                         myball.stickTimeLeft_ms = 4000;
                     }
-
-
-                }
-
-                // if the ball is sticking, make sure to update it's position and 
-                // check to see if it should automagically be released.
-                if (myball.sticking)
-                {
-
-                    myball.ballx = paddlex + myball.stickydifference;
-                    myball.bally = paddley - myball.ballh;
-
-                    if (myball.stickTimeLeft_ms <= 0 && !transitionout)
-                    {
-                        myball.sticking = false;
-                        ballStickCount--;
-                    }
-
-                    if (attractMode && powerups.Count == 0)
-                    {
-                        if (random.NextDouble() < 0.1)
-                        {
-                            myball.sticking = false;
-                            ballStickCount--;
-                        }
-
-                    }
                 }
 
 
@@ -691,20 +681,22 @@ namespace BallBusterX
 
             // update everything else
             UpdateBlocks(time);
-            updateBlockParts(time);
-            updateFlashes(time);
+            UpdateBlockParts(time);
+            UpdateFlashes(time);
             updatePowerUps(time);
             UpdateCaughtPowerUps(time);
-            updateScoreBytes(time);
-            updateFadeBalls(time);
+            UpdateScoreBytes(time);
+            UpdateFadeBalls(time);
             UpdateLastPowerUps(time);
+
+            paddle.Update(time, balls);
             //updateEnemies();
 
 
             // update bg scroll for fun... tied in with the transitioning 'system' ....
             if (transitionout)
             {
-                paddley -= 100 * time_s;
+                paddle.y -= 100 * time_s;
 
                 bgspeed += 100 * time_s;
                 blockscrollspeedy += 40 * time_s;
@@ -716,7 +708,7 @@ namespace BallBusterX
                 {
 
                     stageComplete = true;
-                    paddley = 560;
+                    paddle.y = 560;
                     snd.ching.Play();
 
                     transcount = 255;
@@ -751,13 +743,13 @@ namespace BallBusterX
                 // the goal:  keep the paddle under the ball.
                 // force the computer to accelerate the paddle instead of just using
                 // something lame like paddlex = myball.ballx - 10
-                diff = (int)(balls[lowestball].ballx - (paddlex + paddlew / 2));
+                diff = (int)(balls[lowestball].ballx - paddle.x);
                 int vdiff = (int)(balls[lowestball].ballvx - attractvelocity);
                 int sign = 0;
 
                 // check to see if the ball is left or right of the paddle
-                if (diff < -paddlew / 3) sign = -1;
-                if (diff > paddlew / 3) sign = 1;
+                if (diff < -paddleWidth / 3) sign = -1;
+                if (diff > paddleWidth / 3) sign = 1;
 
                 // if the ball is outside the paddle region, we want to accelerate towards it.
                 // the further the ball is the faster we want to accelerate
@@ -777,7 +769,7 @@ namespace BallBusterX
                         attractvelocity += Math.Min(vdiff, -10);
                 }
 
-                if (vdiff * attractvelocity > 0 && Math.Abs((int)(diff)) < paddlew)
+                if (vdiff * attractvelocity > 0 && Math.Abs((int)(diff)) < paddleWidth)
                 {
                     if (vdiff > 0)
                         attractvelocity += Math.Max(vdiff, 10);
@@ -788,12 +780,12 @@ namespace BallBusterX
             }
             else if (attractMode && lowestball > -1 && chasepowerup)
             {
-                diff = (int)((powerups[lowestball].x + powerups[lowestball].w / 2) - (paddlex + paddlew / 2));
+                diff = (int)((powerups[lowestball].x + powerups[lowestball].w / 2) - (paddlex + paddleWidth / 2));
                 int sign = 0;
 
                 // check to see if the ball is left or right of the paddle
-                if (diff < -paddlew / 3) sign = -1;
-                if (diff > paddlew / 3) sign = 1;
+                if (diff < -paddleWidth / 3) sign = -1;
+                if (diff > paddleWidth / 3) sign = 1;
 
                 // if the powerup is outside the paddle region, we want to accelerate towards it.
                 // the further the powerup is the faster we want to accelerate
@@ -818,11 +810,11 @@ namespace BallBusterX
                     attractvelocity = -1300;
 
                 // update the paddle position
-                paddlex += attractvelocity * time_s;
+                paddle.x += attractvelocity * time_s;
 
 
                 // pay attention to the borders
-                if (paddleCheckEdge())
+                if (paddle.CheckEdge())
                     attractvelocity = 0;
 
 
@@ -839,6 +831,7 @@ namespace BallBusterX
 
             CheckLevelCompleteCondition();
         }
+
 
         private void UpdateCaughtPowerUps(GameTime time)
         {
@@ -863,7 +856,7 @@ namespace BallBusterX
         private void UpdateLastPowerUps(GameTime time)
         {
             foreach (var pu in lastPowerups)
-                pu.timeLeft_s -= (float) time.ElapsedGameTime.TotalSeconds;
+                pu.timeLeft_s -= (float)time.ElapsedGameTime.TotalSeconds;
         }
 
         private void CheckLevelCompleteCondition()
@@ -898,21 +891,21 @@ namespace BallBusterX
 
             if (balls.Count == 0 && !transitionout)
             {
-                if (paddlealpha == 1.0f)
+                if (paddleOpacity == 1.0f)
                 {
                     snd.die.Play();
                     dying = true;
-                    paddley -= 100 * time_s;
+                    paddle.y -= 100 * time_s;
                     deathAnimation = 0;
                 }
                 if (deathAnimation <= 0)
                 {
-                    paddlealpha -= 0.5f * time_s;
-                    paddlerot += 1440.0f * time_s;
-                    paddley -= 75 * time_s;
+                    paddle.Opacity -= 0.5f * time_s;
+                    paddle.RotationAngle += 1440.0f * time_s;
+                    paddle.y -= 75 * time_s;
                     deathAnimation += 20;
                 }
-                if (paddlealpha < 0.0f)
+                if (paddleOpacity < 0.0f)
                 {
                     dying = false;
                     gameover = false;
@@ -928,10 +921,10 @@ namespace BallBusterX
                     if (Lives > 0)
                     {
                         addBall();
+
                         if (!transitionout) Lives--;
-                        paddley = 560;
-                        paddlerot = 0.0f;
-                        paddlealpha = 1.0f;
+
+                        paddle.ResetPosition();
                     }
                 }
             }
@@ -961,7 +954,7 @@ namespace BallBusterX
             SetLightParameters();
 
             lightingEffect.Parameters["World"].SetValue(Matrix.Identity);
-            lightingEffect.Parameters["ViewProjection"] .SetValue(
+            lightingEffect.Parameters["ViewProjection"].SetValue(
                 Matrix.CreateOrthographicOffCenter(
                     new Rectangle(0, 0, 800, 600), -1, 1));
             lightingEffect.CurrentTechnique = lightingEffect.Techniques["Render"];
@@ -981,30 +974,70 @@ namespace BallBusterX
             spriteBatch.End();
             spriteBatch.Begin();
 
-            // Draw paddle, other stuff, and lastly the balls.
-            Sprite pad;
-
-            if (paddlew == 50)
-            {
-                pad = img.smallpaddle;
-            }
-            else if (paddlew == 100)
-            {
-                pad = img.paddle;
-            }
-            else
-            {
-                pad = img.largepaddle;
-            }
-
-            pad.Scale = new Vector2(paddlealpha, paddlealpha);
-            pad.Alpha = paddlealpha;
-            pad.SetRotationCenter(OriginAlignment.Center);
-            pad.RotationAngleDegrees = paddlerot;
-            pad.Draw(spriteBatch, new Vector2(PaddlePos.X + paddlew / 2, PaddlePos.Y + paddleh / 2));
-
+            DrawPaddle(spriteBatch);
             DrawPowerUps(spriteBatch);
             DrawScoreBytes(spriteBatch);
+            DrawBalls(spriteBatch);
+
+            DrawScore(spriteBatch);
+
+            // output debugging messages, if the debugger is attached
+            // feel free to modify this to your heart's content.
+            //if (debugger)
+            //{
+            //    font.DrawText(13, 505, "basePaddleImbueV: " + ((int)basePaddleImbueV));
+            //    font.DrawText(13, 520, "paddleImbueV: " + ((int)paddleImbueV));
+            //    font.DrawText(13, 550, "Balls Lost: " + (ballslost));
+            //    font.DrawText(13, 565, "BallStickCount: " + (ballStickCount));
+            //}
+
+            DrawExtraLives(spriteBatch);
+            DrawPowerupsInEffect(spriteBatch);
+
+            // fade the screen to white if we are transitioning out
+            DrawTransition(spriteBatch);
+        }
+
+        private void DrawTransition(SpriteBatch spriteBatch)
+        {
+            if (transitionout)
+            {
+                Rectangle myrect = new Rectangle(0, 0, 800, 600);
+                Color mycolor = new Color(255, 255, 255, transcount);
+
+                FillRect(spriteBatch, myrect, mycolor);
+
+            }
+        }
+
+        private void DrawExtraLives(SpriteBatch spriteBatch)
+        {
+
+            // Draw extra lives
+            img.ball.RotationAngle = 0;
+
+            int ilives;
+            for (ilives = 0; ilives < Lives; ilives++)
+            {
+                img.ball.Draw(spriteBatch, new Vector2(775 - (ilives * 13), 588));
+            }
+        }
+
+        private void DrawScore(SpriteBatch spriteBatch)
+        {
+
+            // Draw whatever text
+            string message = $"Score: {Score}";
+
+            font.Size = 10;
+            font.Color = Color.Black;
+            font.DrawText(spriteBatch, new Vector2(11, 585), message);
+            font.Color = Color.White;
+            font.DrawText(spriteBatch, new Vector2(13, 583), message);
+        }
+
+        private void DrawBalls(SpriteBatch spriteBatch)
+        {
 
             // Draw the balls
             Sprite ballimg;
@@ -1058,73 +1091,41 @@ namespace BallBusterX
                     img.smash.RotationAngleDegrees = myball.SmashAngle;
                     img.smash.Draw(spriteBatch, ballCenter);
                 }
+
+                // Uncomment to see hitboxes for balls
+                //FillRect(spriteBatch, myball.HitBox, new Color(Color.Red, 128));
             }
+        }
 
-            // Draw whatever text
-            string message = $"Score: {Score}";
+        private void DrawPaddle(SpriteBatch spriteBatch)
+        {
+            Sprite pad = img.paddle;
 
-            font.Size = 10;
-            font.Color = Color.Black;
-            font.DrawText(spriteBatch, new Vector2(11, 585), message);
-            font.Color = Color.White;
-            font.DrawText(spriteBatch, new Vector2(13, 583), message);
+            int roundedWidth = (int)(paddle.Width + 0.5f);
+            int leftWidth = roundedWidth / 2;
+            int rightWidth = roundedWidth - leftWidth;
 
-            // output debugging messages, if the debugger is attached
-            //if (debugger)
+            pad.Scale = new Vector2(paddleOpacity, paddleOpacity);
+            pad.Alpha = paddleOpacity;
+            pad.RotationAngleDegrees = paddleRotationAngle;
+
+            pad.SetRotationCenter(OriginAlignment.Center);
+            pad.Draw(spriteBatch,
+                     new Vector2(paddle.x, paddle.y + paddle.Height / 2),
+                     new Rectangle(0, 0, leftWidth, pad.SpriteHeight));
+
+            pad.SetRotationCenter(OriginAlignment.Center);
+
+            pad.Draw(spriteBatch,
+                     new Vector2(paddle.x + leftWidth, paddle.y + paddle.Height / 2),
+                     new Rectangle(pad.SpriteWidth - rightWidth, 0, rightWidth, pad.SpriteHeight));
+
+            // Uncomment this to see the hitbox for the paddle.
+            //if (!dying)
             //{
-            //    font.DrawText(13, 505, "basePaddleImbueV: " + ((int)basePaddleImbueV));
-            //    font.DrawText(13, 520, "paddleImbueV: " + ((int)paddleImbueV));
-            //    font.DrawText(13, 550, "Balls Lost: " + (ballslost));
-            //    font.DrawText(13, 565, "BallStickCount: " + (ballStickCount));
+            //    FillRect(spriteBatch,
+            //        paddle.HitBox, new Color(44, 44, 00, 99));
             //}
-
-            //font.DrawText(60, 10, string.Format("FPS: {0:###.#}", Math.Round(Display.FramesPerSecond, 1)));
-
-            // Draw extra lives
-            img.ball.RotationAngle = 0;
-
-            int ilives;
-            for (ilives = 0; ilives < Lives; ilives++)
-            {
-                img.ball.Draw(spriteBatch, new Vector2(775 - (ilives * 13), 588));
-            }
-
-            // Draw powerups that are in effect:
-            DrawPowerupsInEffect(spriteBatch);
-
-
-            // fade the screen to white if we are transitioning out
-            if (transitionout)
-            {
-                Rectangle myrect = new Rectangle(0, 0, 800, 600);
-                Color mycolor = new Color(255, 255, 255, transcount);
-
-                FillRect(spriteBatch, myrect, mycolor);
-
-            }
-
-            // display paused message
-            if (paused)
-            {
-                Rectangle myrect = new Rectangle(0, 0, 800, 600);
-                Color mycolor = new Color(0, 0, 0, 100);
-
-                FillRect(spriteBatch, myrect, mycolor);
-
-                if (pauseTimer % 1000 < 500)
-                {
-                    font.Size = 30;
-                    font.Color = Color.White;
-                    font.TextAlignment = OriginAlignment.Center;
-
-                    font.DrawText(spriteBatch, 400, 200, "PAUSED");
-                    font.DrawText(spriteBatch, 400, 300, "Press 'P' to unpause.");
-
-                    font.TextAlignment = OriginAlignment.TopLeft;
-
-                    font.Size = 14;
-                }
-            }
         }
 
         public void FillRect(SpriteBatch spriteBatch, Rectangle rectangle, Color color)
@@ -1178,7 +1179,7 @@ namespace BallBusterX
 
                 lights.SetLightEnable(i, true);
                 lights.SetLightPosition(i, new Vector3(ball.BallCenter, -1));
-                
+
                 if (ball.fireball)
                 {
                     lights.SetLightColor(i, fireballColor);
@@ -1263,7 +1264,7 @@ namespace BallBusterX
 
 
         }
-        private void updateBlockParts(GameTime time)
+        private void UpdateBlockParts(GameTime time)
         {
             if (blockparts.Count > 0)
             {
@@ -1327,7 +1328,7 @@ namespace BallBusterX
             flashes.Add(pFlash);
         }
 
-        private void updateFlashes(GameTime time)
+        private void UpdateFlashes(GameTime time)
         {
             if (flashes.Count > 0)
             {
@@ -1367,11 +1368,6 @@ namespace BallBusterX
             }
         }
 
-        private CBall addBall()
-        {
-            return addBall((int)(paddlew / 2));
-        }
-
         private CBall addBall(CBall otherball)
         {
             if (balls.Count >= ballLimit)
@@ -1385,7 +1381,7 @@ namespace BallBusterX
 
         }
 
-        private CBall addBall(int offset)
+        private CBall addBall(int offset = 0)
         {
             if (balls.Count >= ballLimit)
                 return null;
@@ -1451,12 +1447,12 @@ namespace BallBusterX
 
         private void powerUp(CPowerUp powerup)
         {
-            powerUp(powerup, 0);
+            ApplyPowerUp(powerup, 0);
         }
 
-        private void powerUp(CPowerUp powerup, int extraPoints)
+        private void ApplyPowerUp(CPowerUp powerup, int extraPoints)
         {
-            int scoreGain = extraPoints;
+            int scoreGain = 0;
             PowerupTypes effect = powerup.getEffect();
 
             powerupcount++;
@@ -1513,73 +1509,22 @@ namespace BallBusterX
 
                 case PowerupTypes.MULTIBALL:
 
-                    addBall((int)(paddlew * 0.5f) + 0);
-                    addBall((int)(paddlew * 0.5f) + 10);
-                    addBall((int)(paddlew * 0.5f) - 10);
-                    addBall((int)(paddlew * 0.5f) - 20);
+                    addBall(5);
+                    addBall(-5);
+                    addBall(15);
+                    addBall(-15);
+
                     scoreGain = 50;
 
                     break;
 
                 case PowerupTypes.PU3BALL:
-                {
-                    int end = balls.Count;
 
+                    SplitBalls();
 
-                    for (int i = 0; i < end; i++)
-                    {
-                        CBall myball = balls[i];
-                        CBall ball1, ball2;
+                    scoreGain = 50;
 
-                        if (myball.sticking)
-                            continue;
-
-                        ball1 = addBall(myball);
-
-                        if (ball1 == null)
-                            break;
-
-                        ball2 = addBall(myball);
-
-                        if (ball2 == null)
-                            break;
-
-
-
-
-                        // come up with a unit vector that is perpendicular to the ball's velocity
-                        float angle = (float)Math.Atan2(myball.ballvy, myball.ballvx);
-                        float perpx, perpy;
-
-                        perpx = (float)Math.Cos(angle + (float)(Math.PI / 2));
-                        perpy = (float)Math.Sin(angle + (float)(Math.PI / 2));
-
-                        // put the balls side by side.
-                        ball1.ballx = myball.ballx + myball.ballw * 1.01f * perpx;
-                        ball1.bally = myball.bally + myball.ballw * 1.01f * perpy;
-
-                        ball2.ballx = myball.ballx - myball.ballw * 1.01f * perpx;
-                        ball2.bally = myball.bally - myball.ballw * 1.01f * perpy;
-
-                        // set the velocities
-                        float vel = (float)Math.Pow(myball.ballvx, 2) + (float)Math.Pow(myball.ballvy, 2);
-                        float boostAngle = (float)(Math.PI / 12);
-                        vel = (float)Math.Sqrt(vel);
-
-                        ball1.ballvx = vel * (float)Math.Cos(angle + boostAngle);
-                        ball1.ballvy = vel * (float)Math.Sin(angle + boostAngle);
-
-                        ball2.ballvx = vel * (float)Math.Cos(angle - boostAngle);
-                        ball2.ballvy = vel * (float)Math.Sin(angle - boostAngle);
-
-                        ball1.sticking = false;
-                        ball2.sticking = false;
-
-                    }
-                }
-                scoreGain = 50;
-
-                break;
+                    break;
 
                 case PowerupTypes.RBSWAP:
 
@@ -1588,10 +1533,7 @@ namespace BallBusterX
                         paddleImbueV = basePaddleImbueV - (paddleImbueV - basePaddleImbueV);
                     }
 
-                    if (paddlew < 90)
-                        setPaddleSize(150);
-                    else if (paddlew > 110)
-                        setPaddleSize(50);
+                    paddle.PaddleSizeIndex = -paddle.PaddleSizeIndex;
 
                     BBUtility.SWAP(ref catchblue, ref catchred);
                     BBUtility.SWAP(ref catchbluetimeleft_s, ref catchredtimeleft_s);
@@ -1685,21 +1627,29 @@ namespace BallBusterX
                 case PowerupTypes.LARGEPADDLE:
 
                     scoreGain = 50;
-                    setPaddleSize(150);
+
+                    if (paddle.PaddleSizeIndex < 0)
+                        paddle.PaddleSizeIndex++;
+
+                    paddle.PaddleSizeIndex ++;
 
                     break;
 
                 case PowerupTypes.SMALLPADDLE:
 
-                    scoreGain = 50;
-                    setPaddleSize(50);
+                    scoreGain = 500;
+
+                    if (paddle.PaddleSizeIndex > 0)
+                        paddle.PaddleSizeIndex--;
+
+                    paddle.PaddleSizeIndex--;
 
                     break;
 
                 case PowerupTypes.REGULARPADDLE:
 
                     scoreGain = 50;
-                    setPaddleSize(100);
+                    paddle.PaddleSizeIndex = 0;
 
                     break;
 
@@ -1715,8 +1665,8 @@ namespace BallBusterX
 
                     scoreGain = 50;
                     catchred = true;
-
                     catchredtimeleft_s = 30;
+
                     break;
 
                 case PowerupTypes.POW:
@@ -1763,114 +1713,159 @@ namespace BallBusterX
 
                 case PowerupTypes.RESET:
 
-                    scoreGain = 50;
-
-                    // adjust the amount of points gained for whether we are
-                    // losing "good" or "bad" powerups
-                    if (blaster) scoreGain += 25;
-                    if (fireball) scoreGain += 25;
-                    if (paddlew < 100) scoreGain -= 25;
-                    if (paddlew > 100) scoreGain += 25;
-                    if (paddleImbueV > basePaddleImbueV + 25) scoreGain -= 25;
-                    if (paddleImbueV < basePaddleImbueV - 25) scoreGain += 25;
-                    if (stickypaddle) scoreGain += 25;
-                    if (supersticky) scoreGain += 25;
-                    if (catchblue) scoreGain += 25;
-                    if (catchred) scoreGain -= 25;
-                    if (pow) scoreGain += 25;
-                    if (smash) scoreGain += 25;
-
-                    setPaddleSize(100);
-                    catchblue = catchred = stickypaddle = supersticky = blaster = fireball = false;
-                    pow = smash = false;
-                    paddleImbueV = basePaddleImbueV;
-                    {
-                        int i;
-                        for (i = 0; i < balls.Count; i++)
-                        {
-                            CBall myball = balls[i];
-
-                            if (myball.sticking)
-                            {
-                                myball.fireball = false;
-                                myball.setDamage(100);
-                                myball.smash = false;
-                            }
-                        }
-                    }
+                    scoreGain = TouchResetPowerup();
 
                     break;
 
                 case PowerupTypes.RANDOM:
 
-                    // this is worth 50 extra points, but we pass it to the actual powerup
-                    // so that the scorebyte that's displayed on the screen is the right
-                    // number.
-                    scoreGain = 0;
+                    TouchMysteryPowerup(powerup);
 
-                    // declare some local variables, so enclose in braces to 
-                    // avoid stupid warnings.
-                    {
-                        CPowerUpList list = new CPowerUpList();
-                        CPowerUp actual;
-
-                        // build the list of available powerups.
-                        BuildPowerUpList(list);
-                        list.removeEffect(PowerupTypes.RANDOM);
-                        list.removeEffect(PowerupTypes.DOOR);
-
-                        powerupcount--;
-
-                        // choose one of them
-                        list.AssignPowerup(out actual, 0, 0, random);
-
-                        // execute it
-                        powerUp(actual, 50);
-
-                        // change my icon:
-                        powerup.icon = actual.icon;
-
-                        // delete it.
-                        // delete actual;
-                    }
+                    // We can just return from here, since TouchMysteryPowerup
+                    // awards the score.
 
                     break;
             }
 
             // don't let the point gain drop below zero
-            if (scoreGain < 0) scoreGain = 0;
+            if (scoreGain < 0)
+                scoreGain = 0;
+
+            scoreGain += extraPoints;
 
             // gain the actual points
             GainPoints(scoreGain, (int)(powerup.x + 20), (int)(powerup.y + 20));
 
         }
 
-        private void setPaddleSize(float fNewSize)
+        private int TouchResetPowerup()
         {
-            float oldSize = paddlew;
-            paddlew = fNewSize;
+            int scoreGain = 50;
 
-            if (balls.Count > 0)
+            // adjust the amount of points gained for whether we are
+            // losing "good" or "bad" powerups
+            if (blaster) scoreGain += 25;
+            if (fireball) scoreGain += 25;
+            if (paddleWidth < 100) scoreGain -= 25;
+            if (paddleWidth > 100) scoreGain += 25;
+            if (paddleImbueV > basePaddleImbueV + 25) scoreGain -= 25;
+            if (paddleImbueV < basePaddleImbueV - 25) scoreGain += 25;
+            if (stickypaddle) scoreGain += 25;
+            if (supersticky) scoreGain += 25;
+            if (catchblue) scoreGain += 25;
+            if (catchred) scoreGain -= 25;
+            if (pow) scoreGain += 25;
+            if (smash) scoreGain += 25;
+
+            if (scoreGain < 1) scoreGain = 1;
+
+            paddle.PaddleSizeIndex = 0;
+
+            catchblue = catchred = stickypaddle = supersticky = blaster = fireball = false;
+            pow = smash = false;
+            paddleImbueV = basePaddleImbueV;
             {
-                // now, adjust the positions of the balls, so none of them
-                // are way off the edge of the paddle.
                 int i;
                 for (i = 0; i < balls.Count; i++)
                 {
-                    if (balls[i].sticking)
+                    CBall myball = balls[i];
+
+                    if (myball.sticking)
                     {
-                        // the formula is to keep the balls at the same ratio of distance
-                        // from the edge of the paddle to the size of the paddle
-                        float oldPos = balls[i].stickydifference / oldSize;
-
-                        balls[i].stickydifference = oldPos * paddlew;
+                        myball.fireball = false;
+                        myball.setDamage(100);
+                        myball.smash = false;
                     }
-
                 }
             }
 
-            // make sure the paddle does not go outside the edge.
-            paddleCheckEdge();
+            return scoreGain;
+        }
+
+        private void TouchMysteryPowerup(CPowerUp powerup)
+        {
+            // this is worth 50 extra points, but we pass it to the actual powerup
+            // so that the scorebyte that's displayed on the screen is the right
+            // number.
+            int scoreGain = 0;
+
+            // declare some local variables, so enclose in braces to 
+            // avoid stupid warnings.
+            {
+                CPowerUpList list = new CPowerUpList();
+                CPowerUp actual;
+
+                // build the list of available powerups.
+                BuildPowerUpList(list);
+                list.removeEffect(PowerupTypes.RANDOM);
+                list.removeEffect(PowerupTypes.DOOR);
+                list.removeEffect(PowerupTypes.RESET);
+
+                powerupcount--;
+
+                // choose one of them
+                list.AssignPowerup(out actual, 0, 0, random);
+
+                // execute it
+                ApplyPowerUp(actual, 50);
+
+                // change my icon:
+                powerup.icon = actual.icon;
+            }
+        }
+
+        private void SplitBalls()
+        {
+            int end = balls.Count;
+
+            for (int i = 0; i < end; i++)
+            {
+                CBall myball = balls[i];
+                CBall ball1, ball2;
+
+                if (myball.sticking)
+                    continue;
+
+                ball1 = addBall(myball);
+
+                if (ball1 == null)
+                    break;
+
+                ball2 = addBall(myball);
+
+                if (ball2 == null)
+                    break;
+
+
+                // come up with a unit vector that is perpendicular to the ball's velocity
+                float angle = (float)Math.Atan2(myball.ballvy, myball.ballvx);
+                float perpx, perpy;
+
+                perpx = (float)Math.Cos(angle + (float)(Math.PI / 2));
+                perpy = (float)Math.Sin(angle + (float)(Math.PI / 2));
+
+                // put the balls side by side.
+                ball1.ballx = myball.ballx + myball.ballw * 1.01f * perpx;
+                ball1.bally = myball.bally + myball.ballw * 1.01f * perpy;
+
+                ball2.ballx = myball.ballx - myball.ballw * 1.01f * perpx;
+                ball2.bally = myball.bally - myball.ballw * 1.01f * perpy;
+
+                // set the velocities
+                float vel = (float)Math.Pow(myball.ballvx, 2) + (float)Math.Pow(myball.ballvy, 2);
+                float boostAngle = (float)(Math.PI / 12);
+                vel = (float)Math.Sqrt(vel);
+
+                ball1.ballvx = vel * (float)Math.Cos(angle + boostAngle);
+                ball1.ballvy = vel * (float)Math.Sin(angle + boostAngle);
+
+                ball2.ballvx = vel * (float)Math.Cos(angle - boostAngle);
+                ball2.ballvy = vel * (float)Math.Sin(angle - boostAngle);
+
+                ball1.sticking = false;
+                ball2.sticking = false;
+
+            }
         }
 
         private void BuildPowerUpList(CPowerUpList pulist)
@@ -1878,30 +1873,39 @@ namespace BallBusterX
             // erase whatever's in the list now
             pulist.clear();
 
+            int shortenWidthBoost = 10 * paddle.PaddleSizeIndex;
+
             // only list the powerups in the list that will actually have an effect
-            if (paddlew < 110) pulist.addEffect(PowerupTypes.LARGEPADDLE, GetPUIcon(PowerupTypes.LARGEPADDLE), 50);
-            if (paddlew > 90) pulist.addEffect(PowerupTypes.SMALLPADDLE, GetPUIcon(PowerupTypes.SMALLPADDLE), 30);
+            if (paddleWidth < 200) pulist.addEffect(PowerupTypes.LARGEPADDLE, GetPUIcon(PowerupTypes.LARGEPADDLE), 100 - shortenWidthBoost);
+            if (paddleWidth > 90) pulist.addEffect(PowerupTypes.SMALLPADDLE, GetPUIcon(PowerupTypes.SMALLPADDLE), 50 + shortenWidthBoost);
             if (!blaster) pulist.addEffect(PowerupTypes.BLASTER, GetPUIcon(PowerupTypes.BLASTER), 10);
-            if (paddleImbueV <= 800) pulist.addEffect(PowerupTypes.FASTBALL, GetPUIcon(PowerupTypes.FASTBALL), 50);
+            if (paddle.ImbueV <= 800) pulist.addEffect(PowerupTypes.FASTBALL, GetPUIcon(PowerupTypes.FASTBALL), 50);
             if (!fireball) pulist.addEffect(PowerupTypes.FIREBALL, GetPUIcon(PowerupTypes.FIREBALL), 10);
-            if (90 > paddlew || paddlew > 110) pulist.addEffect(PowerupTypes.REGULARPADDLE, GetPUIcon(PowerupTypes.REGULARPADDLE), 20);
+            if (paddle.PaddleSizeIndex != 0) pulist.addEffect(PowerupTypes.REGULARPADDLE, GetPUIcon(PowerupTypes.REGULARPADDLE), 20);
             if (basePaddleImbueV > paddleImbueV + 25 ||
                 basePaddleImbueV < paddleImbueV - 25)
                 pulist.addEffect(PowerupTypes.NORMALSPEED, GetPUIcon(PowerupTypes.NORMALSPEED), 30);
             if (paddleImbueV >= 200) pulist.addEffect(PowerupTypes.SLOWBALL, GetPUIcon(PowerupTypes.SLOWBALL), 30);
 
-            if (!stickypaddle) pulist.addEffect(PowerupTypes.STICKY, GetPUIcon(PowerupTypes.STICKY), 10);
+            if (!stickypaddle) pulist.addEffect(PowerupTypes.STICKY, GetPUIcon(PowerupTypes.STICKY), 20);
             if (stickypaddle) pulist.addEffect(PowerupTypes.SUPERSTICKY, GetPUIcon(PowerupTypes.SUPERSTICKY), 20);
 
             if (!catchblue) pulist.addEffect(PowerupTypes.CATCHBLUE, GetPUIcon(PowerupTypes.CATCHBLUE), 10);
             if (!catchred) pulist.addEffect(PowerupTypes.CATCHRED, GetPUIcon(PowerupTypes.CATCHRED), 20);
 
-            if (balls.Count < 30) pulist.addEffect(PowerupTypes.PU3BALL, GetPUIcon(PowerupTypes.PU3BALL), 30);
-            pulist.addEffect(PowerupTypes.MULTIBALL, GetPUIcon(PowerupTypes.MULTIBALL), 20);
+            int multiBallWeightBoost = (int)(150 * (1 - Math.Tanh(balls.Count / 2)));
+
+            if (balls.Count < 30)
+            {
+                // Pick a weight so that 3 ball is real common when you only have one ball.
+                pulist.addEffect(PowerupTypes.PU3BALL, GetPUIcon(PowerupTypes.PU3BALL), 30 + multiBallWeightBoost);
+            }
+
+            pulist.addEffect(PowerupTypes.MULTIBALL, GetPUIcon(PowerupTypes.MULTIBALL), 20 + multiBallWeightBoost);
 
             // these should always be available for dropping under any conditions.
-            pulist.addEffect(PowerupTypes.RESET, GetPUIcon(PowerupTypes.RESET), 30);
-            pulist.addEffect(PowerupTypes.ONEUP, GetPUIcon(PowerupTypes.ONEUP), 2);
+            pulist.addEffect(PowerupTypes.RESET, GetPUIcon(PowerupTypes.RESET), 20);
+            pulist.addEffect(PowerupTypes.ONEUP, GetPUIcon(PowerupTypes.ONEUP), 3);
             pulist.addEffect(PowerupTypes.RANDOM, GetPUIcon(PowerupTypes.RANDOM), 30);
 
             pulist.addEffect(PowerupTypes.POW, GetPUIcon(PowerupTypes.POW), 20);
@@ -2001,7 +2005,7 @@ namespace BallBusterX
 
         }
 
-        private void updateScoreBytes(GameTime time)
+        private void UpdateScoreBytes(GameTime time)
         {
             for (int i = 0; i < scoreBytes.Count; i++)
             {
@@ -2070,10 +2074,7 @@ namespace BallBusterX
         private void dropPowerUp(int myx, int myy, bool pointsonly)
         {
             CPowerUp ppowerup;
-            CPowerUpList pulist = new CPowerUpList();
             int set;
-
-            BuildPowerUpList(pulist);
 
             if (pointsonly)
             {
@@ -2088,6 +2089,10 @@ namespace BallBusterX
             }
             else
             {
+                CPowerUpList pulist = new CPowerUpList();
+
+                BuildPowerUpList(pulist);
+
                 pulist.AssignPowerup(out ppowerup, myx, myy, random);
             }
 
@@ -2099,31 +2104,30 @@ namespace BallBusterX
             if (powerups.Count > 0)
             {
                 int i;
-                bool badPowerup;
-
-
 
                 for (i = 0; i < powerups.Count; i++)
                 {
-                    bool hitpaddle = true;
-                    badPowerup = false;
-
                     CPowerUp mypowerup = powerups[i];
 
-                    if (mypowerup.x > paddlex + paddlew) hitpaddle = false;
-                    if (mypowerup.y > paddley + paddleh) hitpaddle = false;
-                    if (mypowerup.x + 40 < paddlex) hitpaddle = false;
-                    if (mypowerup.y + 40 < paddley) hitpaddle = false;
+                    bool hitpaddle = paddle.HitBox.Intersects(mypowerup.HitBox);
 
-                    if (catchblue && mypowerup.isBlue())
-                        hitpaddle = true;
-                    if (catchred && mypowerup.isRed())
-                        hitpaddle = true;
-
-                    if (mypowerup.getEffect() == PowerupTypes.PU_NONE) hitpaddle = false;
+                    if (mypowerup.getEffect() == PowerupTypes.PU_NONE)
+                        hitpaddle = false;
 
                     if (dying)
                         hitpaddle = false;
+
+                    bool powerupAlive = mypowerup.update(time);
+
+                    if (mypowerup.y > 600)
+                    {
+                        if (catchblue && mypowerup.IsBlue)
+                            hitpaddle = true;
+                        else if (catchred && mypowerup.IsRed)
+                            hitpaddle = true;
+                        else
+                            powerupAlive = false;
+                    }
 
                     if (hitpaddle)
                     {
@@ -2132,15 +2136,9 @@ namespace BallBusterX
                         mypowerup.vx = paddleVelocity / 10;
 
                         snd.powerup.Play();
-
-                    }
-                    if (!mypowerup.update(time))
-                    {
-                        // delete it if the alpha is gone....
-                        badPowerup = true;
                     }
 
-                    if (badPowerup)
+                    if (!powerupAlive)
                     {
                         deletePowerUp(i);
                         i--;
@@ -2213,7 +2211,7 @@ namespace BallBusterX
             fadeBalls.Add(fb);
         }
 
-        private void updateFadeBalls(GameTime time)
+        private void UpdateFadeBalls(GameTime time)
         {
             for (int i = 0; i < fadeBalls.Count; i++)
             {
@@ -2309,15 +2307,6 @@ namespace BallBusterX
         }
 
         public int Score => thescore;
-
-        private bool paddleCheckEdge()
-        {
-            if (paddlex < 60) { paddlex = 60; return true; }
-            if (paddlex > 740 - paddlew) { paddlex = 740 - paddlew; return true; }
-
-            return false;
-        }
-
 
         private void loadLevel(bool resetPowerups)
         {
@@ -2436,9 +2425,9 @@ namespace BallBusterX
                     if (myball.fireball)
                         scoreGain -= 3;
 
-                    if (paddlew > 110)
+                    if (paddleWidth > 110)
                         scoreGain -= 2;
-                    else if (paddlew < 90)
+                    else if (paddleWidth < 90)
                         scoreGain += 2;
 
                     //if (paddleImbueV > 510) scoreGain += 2;
@@ -2495,8 +2484,8 @@ namespace BallBusterX
                     // powerups in effect.
                     //if (paddleImbueV > 510) scoreGain += 1;
                     //if (paddleImbueV < 490) scoreGain -= 1;
-                    if (paddlew > 110) scoreGain -= 1;
-                    if (paddlew < 90) scoreGain += 1;
+                    if (paddleWidth > 110) scoreGain -= 1;
+                    if (paddleWidth < 90) scoreGain += 1;
                     if (blaster) scoreGain = 0;
 
                     if (scoreGain < 0) scoreGain = 0;
@@ -2722,13 +2711,15 @@ namespace BallBusterX
         {
             mousex = mousePos.X;
 
-            paddleVelocity = (mousex - (paddlex + paddlew / 2)) / time_s;
+            paddleVelocity = (mousex - paddle.x) / time_s;
 
-            paddlex = mousex - paddlew / 2;
-            paddleCheckEdge();
+            paddle.x = mousex;
+            paddle.CheckEdge();
 
-            mousex = (int)(paddlex + paddlew / 2);
+            mousex = (int)(paddle.x + 0.5f);
             mousey = 400;
+
+            Mouse.SetPosition(mousex, mousey);
         }
 
         public void MouseClick()
@@ -2745,7 +2736,7 @@ namespace BallBusterX
 
             if (blaster && !dying)
             {
-                addBall((int)(paddlew * 0.5f + random.Next(-4, 2)));
+                addBall(random.Next(-5, 3));
             }
             return;
         }
@@ -2758,33 +2749,6 @@ namespace BallBusterX
 
         private void DrawPowerupsInEffect(SpriteBatch spriteBatch)
         {
-            if (lastPowerups.Count > 0)
-            {
-                foreach (var lpu in lastPowerups.Where(x => x.Show))
-                {
-                    if (lpu.timeLeft_s < 0)
-                        lpu.Show = false;
-                }
-
-                if (lastPowerups.Count > 0)
-                {
-                    font.DrawText(spriteBatch, new Vector2(755, 10), "Last:");
-                }
-
-                powerupLeft = 755;
-                powerupTop = 10 + font.FontHeight;
-
-                foreach (var lpu in lastPowerups.Where(x => x.Show))
-                {
-                    lpu.PowerUp.Scale = new Vector2(1.0f, 1.0f);
-                    lpu.PowerUp.Alpha = 1.0f;
-                    lpu.PowerUp.Draw(spriteBatch, new Vector2(powerupLeft, powerupTop));
-
-                    powerupTop += 45;
-                }
-
-            }
-
             powerupLeft = 755;
             powerupTop = 545;
 
@@ -2795,16 +2759,16 @@ namespace BallBusterX
             else
                 DrawPowerupInEffect(spriteBatch, img.puregularspeed);
 
-            if (paddlew > 110)
-                DrawPowerupInEffect(spriteBatch, img.pupaddlelarge);
-            else if (paddlew < 90)
-                DrawPowerupInEffect(spriteBatch, img.pupaddlesmall);
+            if (paddle.PaddleSizeIndex > 0)
+                DrawPowerupInEffect(spriteBatch, img.pupaddlelarge, $"{paddle.PaddleSizeIndex}");
+            else if (paddle.PaddleSizeIndex < 0)
+                DrawPowerupInEffect(spriteBatch, img.pupaddlesmall, $"{-paddle.PaddleSizeIndex}");
             else
                 DrawPowerupInEffect(spriteBatch, img.pupaddleregular);
 
             if (supersticky)
             {
-                DrawPowerupInEffect(spriteBatch, img.pusupersticky, superstickytimeleft_s);
+                DrawPowerupInEffect(spriteBatch, img.pusupersticky, RemainingText(superstickytimeleft_s));
             }
             else if (stickypaddle)
             {
@@ -2813,7 +2777,7 @@ namespace BallBusterX
 
             if (blaster)
             {
-                DrawPowerupInEffect(spriteBatch, img.publaster, blastertimeleft_s);
+                DrawPowerupInEffect(spriteBatch, img.publaster, RemainingText(blastertimeleft_s));
 
                 font.Size = 24;
 
@@ -2837,17 +2801,17 @@ namespace BallBusterX
 
             if (fireball)
             {
-                DrawPowerupInEffect(spriteBatch, img.pufireball, fireballtimeleft_s);
+                DrawPowerupInEffect(spriteBatch, img.pufireball, RemainingText(fireballtimeleft_s));
             }
 
             if (catchblue)
             {
-                DrawPowerupInEffect(spriteBatch, img.pucatchblue, catchbluetimeleft_s);
+                DrawPowerupInEffect(spriteBatch, img.pucatchblue, RemainingText(catchbluetimeleft_s));
             }
 
             if (catchred)
             {
-                DrawPowerupInEffect(spriteBatch, img.pucatchred, catchredtimeleft_s);
+                DrawPowerupInEffect(spriteBatch, img.pucatchred, RemainingText(catchredtimeleft_s));
 
                 if (catchredtimeleft_s < 0)
                 {
@@ -2863,48 +2827,52 @@ namespace BallBusterX
 
             if (pow)
             {
-                DrawPowerupInEffect(spriteBatch, img.pupow, powstart);
+                DrawPowerupInEffect(spriteBatch, img.pupow, RemainingText(powtimeleft_s));
             }
 
             if (smash)
             {
-                DrawPowerupInEffect(spriteBatch, img.pusmash, smashstart);
+                DrawPowerupInEffect(spriteBatch, img.pusmash, RemainingText(smashtimeleft_s));
             }
         }
 
         private void DrawPowerupInEffect(SpriteBatch spriteBatch, Sprite sprite)
         {
-            DrawPowerupInEffect(spriteBatch, sprite, -1);
+            DrawPowerupInEffect(spriteBatch, sprite, "");
         }
 
-        private void DrawPowerupInEffect(SpriteBatch spriteBatch, Sprite image, float timeRemaining_s)
+        private void DrawPowerupInEffect(SpriteBatch spriteBatch, Sprite image, string text)
         {
-            TimeSpan ts = TimeSpan.FromSeconds(timeRemaining_s);
-            
-            string time = $"{ts.Minutes}:{ts.Seconds:00}";
-
             image.Alpha = (1.0f);
             image.Scale = new Vector2(1.0f, 1.0f);
             image.Draw(spriteBatch, new Vector2(powerupLeft, powerupTop));
 
-            if (timeRemaining_s >= 0)
+            if (!string.IsNullOrWhiteSpace(text))
             {
-                Size size = font.MeasureString(time);
+                Size size = font.MeasureString(text);
                 int fw = size.Width;
                 int pos = powerupLeft + (40 - fw) / 2;
 
 
                 font.Color = Color.Black;
-                font.DrawText(spriteBatch, pos, powerupTop + 2, time);
-                font.DrawText(spriteBatch, pos, powerupTop + 4, time);
-                font.DrawText(spriteBatch, pos + 1, powerupTop + 3, time);
-                font.DrawText(spriteBatch, pos - 1, powerupTop + 3, time);
+                font.DrawText(spriteBatch, pos, powerupTop + 2, text);
+                font.DrawText(spriteBatch, pos, powerupTop + 4, text);
+                font.DrawText(spriteBatch, pos + 1, powerupTop + 3, text);
+                font.DrawText(spriteBatch, pos - 1, powerupTop + 3, text);
 
                 font.Color = Color.White;
-                font.DrawText(spriteBatch, pos, powerupTop + 3, time);
+                font.DrawText(spriteBatch, pos, powerupTop + 3, text);
             }
 
             powerupTop -= 45;
+        }
+
+        private static string RemainingText(float timeRemaining_s)
+        {
+            TimeSpan ts = TimeSpan.FromSeconds(timeRemaining_s);
+
+            string time = $"{ts.Minutes}:{ts.Seconds:00}";
+            return time;
         }
     }
 }

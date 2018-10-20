@@ -37,6 +37,10 @@ namespace BallBusterX
 
         public Sprite icon;
 
+        public PowerupTypes oldeffect;
+        private PowerupTypes effect;
+        private bool isred, isblue;
+
         public CPowerUp(float myx, float myy)
         {
             this.delay = 100;
@@ -55,8 +59,14 @@ namespace BallBusterX
         public float x => position.X;
         public float y => position.Y;
 
+        public Rectangle HitBox => new Rectangle((int)x, (int)y, 40, 40);
+
         public float vx { get => velocity.X; set => velocity.X = value; }
         public float vy { get => velocity.Y; set => velocity.Y = value; }
+
+        public bool IsRed => isred;
+        public bool IsBlue => isblue;
+
 
         public virtual bool update(GameTime time)
         {
@@ -69,20 +79,15 @@ namespace BallBusterX
                 this.position.X += this.velocity.X * time_s;
                 this.extray = this.position.Y;
 
-                //if ((unsigned)this.delay + start < (int)Timing.TotalMilliseconds)
-                //{
                 this.velocity.Y += 300.0f * time_s;
 
-                //	this.start= (int)Timing.TotalMilliseconds;
-                //}
-                if (this.velocity.Y > 600) return false;
                 return true;
             }
             else
             {
-                this.w += 10f * time_s;
-                this.h -= 7.5f * time_s;
-                this.position.X -= 0.03f * icon.SpriteWidth * time_s;
+                position.X -= 1.5f * time_s;
+                this.w += 3f * time_s;
+                this.h += 3f * time_s;
 
                 this.a -= 1f * time_s;
                 this.position.Y -= velocity.Y * time_s;
@@ -153,16 +158,6 @@ namespace BallBusterX
         {
             return effect;
         }
-
-        public bool isRed() { return isred; }
-        public bool isBlue() { return isblue; }
-
-        public PowerupTypes oldeffect;
-        private PowerupTypes effect;
-        private bool isred, isblue;
-
-
-
     }
 
     internal class CPowerUpList

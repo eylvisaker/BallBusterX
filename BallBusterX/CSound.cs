@@ -29,11 +29,12 @@ namespace BallBusterX
 {
     public class CSound
     {
-        public SoundEffect bounce, shatter, powerup, ballfall, speedup, ching, die;
+        public SoundEffect ballscollide, bounce, shatter, powerup, ballfall, speedup, ching, die;
         public List<Song> music = new List<Song>();
 
         public void Load(IContentProvider content)
         {
+            ballscollide = content.Load<SoundEffect>("snd/ballscollide");
             bounce = content.Load<SoundEffect>("snd/bounce");
             shatter = content.Load<SoundEffect>("snd/break");
             powerup = content.Load<SoundEffect>("snd/powerup");

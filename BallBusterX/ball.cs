@@ -36,7 +36,6 @@ namespace BallBusterX
         public CBall()
         {
             this.ballx = this.bally = -10;
-            this.ballh = this.ballw = 10;
             this.ballvx = 50.0f;
             this.ballvy = -120.0f;
             this.ballv = 130.0f;
@@ -59,8 +58,6 @@ namespace BallBusterX
         {
             this.ballx = ball.ballx;
             this.bally = ball.bally;
-            this.ballh = ball.ballh;
-            this.ballw = ball.ballw;
             this.ballvx = ball.ballvx;
             this.ballvy = ball.ballvy;
             this.ballv = ball.ballv;
@@ -79,7 +76,11 @@ namespace BallBusterX
             setDamage(damage);
         }
 
-        public float ballx, bally, ballw, ballh;
+        public float ballw => 10;
+        public float ballh => 10;
+        public float Radius => 5;
+
+        public float ballx, bally;
         public float ballvx, ballvy, ballv; // velocity
         public float SmashAngle;
         public float SmashAngleV = 1200;
@@ -118,6 +119,8 @@ namespace BallBusterX
                 return i;
             }
         }
+
+        public Rectangle HitBox => new Rectangle((int)ballx, (int)bally, (int)ballw, (int)ballh);
 
         /// <summary>
         /// checks to make sure balls velocity is ballv
@@ -166,6 +169,11 @@ namespace BallBusterX
             SmashAngle += SmashAngleV * time_s;
 
             if (SmashAngle > 360) SmashAngle -= 360;
+
+            if (Math.Abs(ballvy) < 10)
+            {
+                ballvy += Math.Sign(ballvy) * 25 * time_s;
+            }
         }
 
         public bool collideWith(CBall otherBall)

@@ -1024,6 +1024,12 @@
 #begin lvls/worlds.cfg
 /copy:lvls/worlds.cfg
 
+#begin snd/ballscollide.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:snd/ballscollide.wav
+
 #begin snd/bounce.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor

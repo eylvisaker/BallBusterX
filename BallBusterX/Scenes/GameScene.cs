@@ -139,11 +139,6 @@ namespace BallBusterX.Scenes
 
             gameState.DrawLevel(spriteBatch);
 
-            if (gameState.paused)
-            {
-                img.arrow.Draw(spriteBatch, mousePos.ToVector2());
-            }
-
             spriteBatch.End();
         }
     }

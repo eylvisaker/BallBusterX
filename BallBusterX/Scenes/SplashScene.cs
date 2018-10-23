@@ -19,7 +19,7 @@ namespace BallBusterX.Scenes
         private readonly SpriteBatch spriteBatch;
         private readonly IContentLayout textLayout;
         private readonly double initialDelay;
-        private double delay = 500;
+        private double delay = 5000;
         private bool loaded;
 
         public SplashScene(GraphicsDevice graphicsDevice, IContentProvider content, CImage img, CSound snd)
@@ -33,7 +33,7 @@ namespace BallBusterX.Scenes
             img.preload(content);
 
             if (System.Diagnostics.Debugger.IsAttached)
-                delay = 5000;
+                delay = 500;
 
             StringBuilder text = new StringBuilder();
 

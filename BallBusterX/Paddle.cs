@@ -12,6 +12,7 @@ namespace BallBusterX
         private const int maxPaddleSizeIndex = 10;
 
         public const int StandardPaddleWidth = 100;
+        public const int GamePaddleY = 570;
         private const float maxPaddleImbueV = 1000.0f;
         private const float minPaddleImbueV = 200.0f;
 
@@ -25,7 +26,7 @@ namespace BallBusterX
         public float Height = 20;
 
         public float x = 350;
-        public float y = 560;
+        public float y = GamePaddleY;
         public float RotationAngle;
         public float Opacity = 1;
         public float Velocity;   // velocity that the paddle is moving.
@@ -65,13 +66,15 @@ namespace BallBusterX
         public float LeftBoundary = 60;
         public float RightBoundary = 740;
 
-        public void Update(GameTime time, IReadOnlyList<CBall> balls)
+        public void Update(GameTime time, IReadOnlyList<Ball> balls)
         {
             GrowIfSizeChanged(time, balls);
             CheckEdge();
         }
 
-        public Rectangle HitBox => new Rectangle((int)x - (int)Width / 2, (int)y, (int)Width, (int)Height);
+        public Rectangle HitBox => new Rectangle((int)(x - Width / 2), (int)(y - Height / 2), (int)Width, (int)Height);
+
+        public Vector2 Position => new Vector2(x, y);
 
         public bool CheckEdge()
         {
@@ -91,7 +94,7 @@ namespace BallBusterX
             return false;
         }
 
-        private void GrowIfSizeChanged(GameTime time, IReadOnlyList<CBall> balls)
+        private void GrowIfSizeChanged(GameTime time, IReadOnlyList<Ball> balls)
         {
             if (targetWidth != Width)
             {

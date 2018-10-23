@@ -156,6 +156,15 @@ namespace BallBusterX.Scenes
             if (mousex > 100 - 20 && mousex < 500 && mousey > 280 && mousey < 320)
             {
                 config.PlayMusic = !config.PlayMusic;
+
+                if (config.PlayMusic)
+                {
+                    StartTitleMusic();
+                }
+                else
+                {
+                    MediaPlayer.Stop();
+                }
             }
 
         }
@@ -172,15 +181,7 @@ namespace BallBusterX.Scenes
         protected override void OnSceneStart()
         {
             base.OnSceneStart();
-
-            Song song = null;
-            if (snd.music.Count > 0)
-            {
-                song = snd.music[0];
-
-                if (config.PlayMusic)
-                    MediaPlayer.Play(song);
-            }
+            StartTitleMusic();
 
             game = gameStateFactory.CreateGameState();
 
@@ -200,6 +201,21 @@ namespace BallBusterX.Scenes
             beginningWorld = 0;
             beginningLevel = 0;
             beginningChanged = false;
+        }
+
+        public void StartTitleMusic()
+        {
+            Song song = null;
+            if (snd.music.Count > 0)
+            {
+                song = snd.music[0];
+
+                if (config.PlayMusic)
+                {
+                    MediaPlayer.Play(song);
+                    MediaPlayer.IsRepeating = true;
+                }
+            }
         }
 
         protected override void OnUpdateInput(IInputState input)

@@ -24,16 +24,18 @@ using System;
 
 namespace BallBusterX
 {
-    public class CBall
+    public class Ball
     {
-        private const int maxSpikes = 5;
-        public const int powIncrement = 40;
-        public const int maxDamage = 100 + powIncrement * (maxSpikes - 1);
+        private const int powDamageIncrement = 40;
+        private const int baseDamage = 100;
+
+        private int power = 0;
+        private const int maxPower = 4;
 
         /// <summary>
         /// 
         /// </summary>
-        public CBall()
+        public Ball()
         {
             this.ballx = this.bally = -10;
             this.ballvx = 50.0f;
@@ -48,13 +50,9 @@ namespace BallBusterX
 
             fireball = false;
             smash = false;
-
-            damage = 100;
-
-            setDamage(damage);
         }
 
-        public CBall(CBall ball)
+        public Ball(Ball ball)
         {
             this.ballx = ball.ballx;
             this.bally = ball.bally;
@@ -65,16 +63,15 @@ namespace BallBusterX
             this.AngularVelocity = ball.AngularVelocity;
 
             this.fireball = ball.fireball;
+            this.power = ball.power;
+            this.smash = ball.smash;
 
             this.sticking = ball.sticking;
             this.stickydifference = ball.stickydifference;
             this.stickTimeLeft_ms = ball.stickTimeLeft_ms;
-
-            smash = ball.smash;
-            damage = ball.damage;
-
-            setDamage(damage);
         }
+
+        public int Damage => baseDamage + power * powDamageIncrement;
 
         public float ballw => 10;
         public float ballh => 10;
@@ -93,8 +90,6 @@ namespace BallBusterX
 
         public double timeToNextFade_ms;
 
-        public int damage;  // damage done by the ball when it hits something
-
         public bool fireball;
         public bool smash;
 
@@ -103,20 +98,28 @@ namespace BallBusterX
         public float stickydifference;
         public double stickTimeLeft_ms;
 
-        public Color color;
+        /// <summary>
+        /// Gets the number of damage powerups this ball has.
+        /// 
+        /// </summary>
+        public int Power
+        {
+            get => power;
+            set
+            {
+                power = value;
 
+                if (power < 0) power = 0;
+                if (power > maxPower) power = maxPower;
+            }
+        }
 
         public int spikes
         {
             get
             {
-                int i = (damage - 100) / powIncrement;
-
-                // make it so just one spike won't show up.  it jumps to two above zero.
-                if (i > 0)
-                    i++;
-
-                return i;
+                if (power == 0) return 0;
+                return power + 2;
             }
         }
 
@@ -140,17 +143,6 @@ namespace BallBusterX
             return true;
 
         }
-        public void setDamage(int val)
-        {
-            if (val > maxDamage)
-                val = maxDamage;
-
-            damage = val;
-
-            int alpha = 255 - (damage - 100);
-
-            color = new Color(255, 255, 255, alpha);
-        }
 
         public void update(GameTime time)
         {
@@ -170,13 +162,19 @@ namespace BallBusterX
 
             if (SmashAngle > 360) SmashAngle -= 360;
 
-            if (Math.Abs(ballvy) < 10)
+            if (Math.Abs(ballvy) < 40)
             {
+                if (ballvy == 0) ballvy = 0.0001f;
                 ballvy += Math.Sign(ballvy) * 25 * time_s;
+            }
+            if (Math.Abs(ballvx) < 40)
+            {
+                if (ballvx == 0) ballvx = 0.0001f;
+                ballvx += Math.Sign(ballvx) * 25 * time_s;
             }
         }
 
-        public bool collideWith(CBall otherBall)
+        public bool collideWith(Ball otherBall)
         {
             // obviously, we don't want to collide with ourself
             if (otherBall == this)

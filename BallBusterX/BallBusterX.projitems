@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Highscore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LightParameters.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Paddle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PaddleRenderer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)powerup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\EditorScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\GameScene.cs" />

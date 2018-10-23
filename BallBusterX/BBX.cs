@@ -34,10 +34,18 @@ namespace BallBusterX
         private void BeginGame(GameState gameState)
         {
             var gameScene = bbxFactory.CreateGameScene(gameState);
+
+            scenes.Clear();
             scenes.Add(gameScene);
 
             gameScene.Pause += Pause;
             gameScene.StageComplete += () => StageComplete(gameState, gameScene);
+            gameScene.SceneEnd += (_, __) =>
+            {
+                scenes.Clear();
+
+                StartTitle();
+            };
         }
 
         private void StageComplete(GameState gameState, GameScene gameScene)

@@ -26,7 +26,7 @@ namespace BallBusterX
 {
     public class CFadeBall
     {
-        public CFadeBall(CBall ball, Random random)
+        public CFadeBall(Ball ball, Random random)
         {
             alpha = 0.75f;
 

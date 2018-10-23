@@ -36,6 +36,7 @@ namespace BallBusterX
     public class CImage
     {
         public Texture2D leftborder, rightborder, topborder;
+        public Texture2D newpaddle;
 
         public Sprite block;
         public Sprite cblock, sblock;
@@ -81,6 +82,7 @@ namespace BallBusterX
             leftborder = content.Load<Texture2D>("imgs/leftborder");
             rightborder = content.Load<Texture2D>("imgs/rightborder");
             topborder = content.Load<Texture2D>("imgs/topborder");
+            newpaddle = content.Load<Texture2D>("imgs/paddle");
 
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(new HyphenatedNamingConvention())

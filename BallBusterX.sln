@@ -36,9 +36,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{6A8008F9-0037-46A2-BBDC-E227E9E991F9}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "AgateLib.Physics", "AgateLib\AgateLib.Physics\AgateLib.Physics.shproj", "{062658FA-CA79-41C2-B4A5-AD9B2A88BEBA}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		AgateLib\AgateLib.Physics\AgateLib.Physics.projitems*{062658fa-ca79-41c2-b4a5-ad9b2a88beba}*SharedItemsImports = 13
 		BallBusterX\BallBusterX.projitems*{469aba2f-7194-4f89-a9eb-98fe940e4290}*SharedItemsImports = 13
+		AgateLib\AgateLib.Physics\AgateLib.Physics.projitems*{509f01e0-517f-48c8-bc2b-fefc78312dd4}*SharedItemsImports = 4
 		AgateLib\AgateLib\AgateLib.projitems*{509f01e0-517f-48c8-bc2b-fefc78312dd4}*SharedItemsImports = 4
 		AgateLib\AgateLib\AgateLib.projitems*{7dc25c0b-b2dc-4eff-8340-c5c785cc25bb}*SharedItemsImports = 4
 		BallBusterX\BallBusterX.projitems*{7dc25c0b-b2dc-4eff-8340-c5c785cc25bb}*SharedItemsImports = 4
@@ -188,6 +192,7 @@ Global
 		{5F203662-6438-4CD9-BE4B-D111F1DFB925} = {A36F3B35-32C4-40D5-95B6-A027BF672DA4}
 		{7B509CAC-0FC2-4AAE-83E2-7F37C282A3A0} = {A36F3B35-32C4-40D5-95B6-A027BF672DA4}
 		{509F01E0-517F-48C8-BC2B-FEFC78312DD4} = {A36F3B35-32C4-40D5-95B6-A027BF672DA4}
+		{062658FA-CA79-41C2-B4A5-AD9B2A88BEBA} = {A36F3B35-32C4-40D5-95B6-A027BF672DA4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CC8C2A82-8CA7-4B75-B58A-3926B124FC20}

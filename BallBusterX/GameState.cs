@@ -1077,7 +1077,7 @@ namespace BallBusterX
 
                 //ballimg.set_color(myball.color);
 
-                int spikes = myball.spikes;
+                int spikes = myball.Spikes;
                 int ballx = (int)myball.ballx;
                 int bally = (int)myball.bally;
 

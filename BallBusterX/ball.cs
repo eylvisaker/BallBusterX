@@ -114,7 +114,7 @@ namespace BallBusterX
             }
         }
 
-        public int spikes
+        public int Spikes
         {
             get
             {

@@ -158,6 +158,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\Scene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\SceneStack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\_EventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Storage\UserStorage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UserInterface\Content\Commands\DrawTexture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UserInterface\Content\Commands\SetTextColor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UserInterface\Content\ContentCommand.cs" />
@@ -261,7 +262,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Content\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Physics\" />
     <Folder Include="$(MSBuildThisFileDirectory)UserInterface\InputMap\" />
   </ItemGroup>
 </Project>

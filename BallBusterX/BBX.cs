@@ -12,8 +12,9 @@ namespace BallBusterX
     {
         private SceneStack scenes = new SceneStack();
         private readonly BBXFactory bbxFactory;
+        private readonly HighscoreCollection highscores;
 
-        public BBX(BBXFactory bbxFactory)
+        public BBX(BBXFactory bbxFactory, HighscoreCollection highscores)
         {
             SplashScene splashScene = bbxFactory.CreateSplashScene();
 
@@ -21,6 +22,7 @@ namespace BallBusterX
 
             scenes.Add(splashScene);
             this.bbxFactory = bbxFactory;
+            this.highscores = highscores;
         }
 
         private void StartTitle()
@@ -42,10 +44,28 @@ namespace BallBusterX
             gameScene.StageComplete += () => StageComplete(gameState, gameScene);
             gameScene.SceneEnd += (_, __) =>
             {
-                scenes.Clear();
+                if (highscores.IsNewHighscore(gameState.Score))
+                {
+                    NewHighscoreScene newHighscoreScene = bbxFactory.CreateNewHighscoreScene();
 
-                StartTitle();
+                    newHighscoreScene.NewScore = gameState.Score;
+
+                    scenes.Add(newHighscoreScene);
+
+                    newHighscoreScene.SceneEnd += (sender, e) => Reset();
+                }
+                else
+                {
+                    Reset();
+                }
             };
+        }
+
+        private void Reset()
+        {
+            scenes.Clear();
+
+            StartTitle();
         }
 
         private void StageComplete(GameState gameState, GameScene gameScene)
@@ -117,6 +137,11 @@ namespace BallBusterX
         public StageCompleteScene CreateLevelCompleteScene(GameState gameState)
         {
             return context.Resolve<StageCompleteScene>(new[] { new NamedParameter("gameState", gameState) });
+        }
+
+        public NewHighscoreScene CreateNewHighscoreScene()
+        {
+            return context.Resolve<NewHighscoreScene>();
         }
     }
 }

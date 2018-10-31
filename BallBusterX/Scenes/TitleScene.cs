@@ -21,6 +21,7 @@ namespace BallBusterX.Scenes
         private readonly SpriteBatch spriteBatch;
         private readonly Random random;
         private readonly WorldCollection worlds;
+        private readonly HighscoreCollection highscores;
         private readonly GameScene attractMode;
         private readonly IMouseEvents mouse;
         private readonly KeyboardEvents keyboard;
@@ -43,6 +44,7 @@ namespace BallBusterX.Scenes
                           CImage img, 
                           CSound snd, 
                           WorldCollection worlds,
+                          HighscoreCollection highscores,
                           BBXConfig config)
         {
             this.graphicsDevice = graphicsDevice;
@@ -56,6 +58,7 @@ namespace BallBusterX.Scenes
             this.random = new Random();
 
             this.worlds = worlds;
+            this.highscores = highscores;
             this.worlds.LoadWorlds(content);
 
             this.mouse = mouse;
@@ -416,14 +419,13 @@ namespace BallBusterX.Scenes
                 font.DrawText(spriteBatch, 500, 100, "High scores");
 
 
-                for (int i = 0; i < game.highscores.Count; i++)
+                for (int i = 0; i < highscores.Count; i++)
                 {
-                    int Drawy = 150 + 15 * i;
+                    int Drawy = 150 + 25 * i;
 
                     font.DrawText(spriteBatch, 500, Drawy, (i + 1).ToString() + ". ");
-                    font.DrawText(spriteBatch, 530, Drawy, game.highscores[i].name);
-                    font.DrawText(spriteBatch, 680, Drawy, (game.highscores[i].score).ToString());
-
+                    font.DrawText(spriteBatch, 530, Drawy, highscores[i].name);
+                    font.DrawText(spriteBatch, 680, Drawy, (highscores[i].score).ToString());
                 }
 
                 img.bblogo.Draw(spriteBatch, new Vector2(40, 350));
@@ -436,7 +438,6 @@ namespace BallBusterX.Scenes
                 font.DrawText(spriteBatch, 100, 540, "Ball: Buster, by Patrick Avella (C) 2004");
                 font.DrawText(spriteBatch, 100, 555, "Ball: Buster eXtreme modifications made by Erik Ylvisaker (C) 2004-8"); 
                 font.DrawText(spriteBatch, 100, 570, "Because Breaking Stuff is Fun");
-
             }
             else
             {

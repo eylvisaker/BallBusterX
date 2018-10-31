@@ -37,6 +37,7 @@ namespace BallBusterX
             this.name = name;
             this.score = score;
         }
+
         public Highscore(string buffer)
         {
             int i;
@@ -49,11 +50,8 @@ namespace BallBusterX
             if (i == buffer.Length)
                 throw new Exception("Failed to read high score data.");
 
-
             name = buffer.Substring(0, i);
             score = int.Parse(buffer.Substring(i + 1));
-
-
         }
 
         public override string ToString()

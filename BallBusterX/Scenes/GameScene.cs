@@ -10,19 +10,24 @@ namespace BallBusterX.Scenes
 {
     public class GameScene : Scene
     {
-        private GameState gameState;
-        private IMouseEvents mouse;
-        private Point mousePos;
-        private Song song;
         private readonly CImage img;
         private readonly CSound snd;
         private readonly BBXConfig config;
-        private readonly PausedScene pausedScene;
         private readonly GraphicsDevice graphicsDevice;
         private readonly KeyboardEvents keyboard;
         private readonly SpriteBatch spriteBatch;
 
-        public GameScene(GameState gameState, GraphicsDevice graphicsDevice, IMouseEvents mouse, CImage img, CSound snd, BBXConfig config)
+        private GameState gameState;
+        private IMouseEvents mouse;
+        private Point mousePos;
+        private Song song;
+
+        public GameScene(GraphicsDevice graphicsDevice,
+                         GameState gameState, 
+                         IMouseEvents mouse, 
+                         CImage img, 
+                         CSound snd, 
+                         BBXConfig config)
         {
             this.gameState = gameState;
             this.graphicsDevice = graphicsDevice;

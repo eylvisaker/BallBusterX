@@ -1,6 +1,7 @@
 ﻿using System;
 using AgateLib;
 using AgateLib.Input;
+using AgateLib.Storage;
 using Autofac;
 using BallBusterX.Scenes;
 using Microsoft.Xna.Framework;
@@ -17,6 +18,7 @@ namespace BallBusterX.Desktop
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         private BBX bbx;
+        private HighscoreCollection highscores;
 
         public BallBusterDesktopGame()
         {
@@ -42,6 +44,9 @@ namespace BallBusterX.Desktop
 
             var container = InitializeContainer();
 
+            highscores = container.Resolve<HighscoreCollection>();
+            highscores.LoadHighscores();
+
             Window.Title = "Ball: Buster X";
 
             bbx = container.Resolve<BBX>();
@@ -66,7 +71,10 @@ namespace BallBusterX.Desktop
             builder.RegisterType<PausedScene>();
             builder.RegisterType<StageCompleteScene>();
             builder.RegisterType<GameState>();
+            builder.RegisterType<NewHighscoreScene>();
+            builder.RegisterType<HighscoreCollection>().SingleInstance();
             builder.RegisterType<MouseEvents>().AsImplementedInterfaces();
+            builder.RegisterType<UserStorage>();
             builder.Register(c => new BBXFactory(c.Resolve<IComponentContext>())).AsSelf().SingleInstance();
             builder.Register(c => new GameStateFactory(c.Resolve<IComponentContext>())).AsSelf().AsImplementedInterfaces().SingleInstance();
 
@@ -101,6 +109,13 @@ namespace BallBusterX.Desktop
             bbx.Draw(gameTime);
 
             base.Draw(gameTime);
+        }
+
+        protected override void OnExiting(object sender, EventArgs args)
+        {
+            base.OnExiting(sender, args);
+
+            highscores.SaveHighscores();
         }
     }
 }

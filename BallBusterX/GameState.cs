@@ -147,7 +147,6 @@ namespace BallBusterX
 
         public WorldCollection worlds;
         private readonly BBXConfig config;
-        public List<Highscore> highscores = new List<Highscore>();
 
 
         public GameState(GraphicsDevice graphics,

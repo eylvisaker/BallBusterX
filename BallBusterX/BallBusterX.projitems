@@ -22,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)flash.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Highscore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HighscoreCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LightParameters.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Paddle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PaddleRenderer.cs" />
@@ -29,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\EditorScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\GameScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\GameStateFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Scenes\NewHighscoreScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\PausedScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\SplashScene.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Scenes\TitleScene.cs" />
@@ -41,8 +43,5 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)app.config" />
     <MonoGameContentReference Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
-    <None Include="$(MSBuildThisFileDirectory)highscores">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

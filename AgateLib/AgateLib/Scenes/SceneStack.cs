@@ -54,6 +54,13 @@ namespace AgateLib.Scenes
         /// </summary>
         /// <param name="scene"></param>
         void Remove(IScene scene);
+        
+        /// <summary>
+        /// Adds a scene if it is not part of the scene stack, or brings it to the top of the scene stack
+        /// if it is.
+        /// </summary>
+        /// <param name="waitScene"></param>
+        void AddOrBringToTop(IScene waitScene);
 
         /// <summary>
         /// Removes all scenes from the scene stack which match a condition.
@@ -106,6 +113,7 @@ namespace AgateLib.Scenes
         private readonly Dictionary<IScene, SceneData> sceneData = new Dictionary<IScene, SceneData>();
 
         private bool updating = false;
+        private object updateLock = new object();
 
         /// <summary>
         /// Provides caching for the UpdateScenes property.
@@ -186,16 +194,36 @@ namespace AgateLib.Scenes
             Require.That<InvalidOperationException>(scene.SceneStack == null,
                 "Scene already belongs to a SceneStack!");
 
-            scenes.Add(scene);
+            lock (updateLock)
+            {
+                scenes.Add(scene);
+                
+                sceneData.Add(scene, dataPool.GetOrDefault());
+            }
+
             scene.SceneStack = this;
-
             scene.SceneStart();
-
-            sceneData.Add(scene, dataPool.GetOrDefault());
 
             if (updating)
             {
                 missedUpdates.Add(scene);
+            }
+        }
+
+        /// <summary>
+        /// Adds a scene to the stack, unless it exists, in which case it is brought to the top of the stack.
+        /// </summary>
+        /// <param name="scene"></param>
+        public void AddOrBringToTop(IScene scene)
+        {
+            Require.ArgumentNotNull(scene, nameof(scene));
+
+            lock (updateLock)
+            {
+                if (Contains(scene))
+                    Remove(scene);
+
+                Add(scene);
             }
         }
 
@@ -209,12 +237,14 @@ namespace AgateLib.Scenes
                 "Cannot remove a scene if it does not belong to the stack.");
 
             scene.SceneEnd();
-
-            scenes.Remove(scene);
-            sceneData[scene].Dispose();
-            sceneData.Remove(scene);
-
             scene.SceneStack = null;
+
+            lock (updateLock)
+            {
+                scenes.Remove(scene);
+                sceneData[scene].Dispose();
+                sceneData.Remove(scene);
+            }
         }
 
         /// <summary>
@@ -257,19 +287,22 @@ namespace AgateLib.Scenes
                 updating = true;
                 bool processedInput = false;
 
-                foreach (var sc in UpdateScenes)
+                lock (updateLock)
                 {
-                    if (sc.HandleInput && !processedInput)
+                    foreach (var sc in UpdateScenes)
                     {
-                        var inputState = sceneData[sc];
+                        if (sc.HandleInput && !processedInput)
+                        {
+                            var inputState = sceneData[sc];
 
-                        inputState.NewFrame(time);
+                            inputState.NewFrame(time);
 
-                        sc.UpdateInput(sceneData[sc].InputState);
-                        processedInput = true;
+                            sc.UpdateInput(sceneData[sc].InputState);
+                            processedInput = true;
+                        }
+
+                        sc.Update(time);
                     }
-
-                    sc.Update(time);
                 }
 
                 int missedUpdateCount = 0;
@@ -312,6 +345,8 @@ namespace AgateLib.Scenes
                 Remove(scene);
         }
 
+        public override string ToString() => $"SceneStack: {Count} scene{(Count != 1 ? "s": "")}";
+
         private IEnumerable<IScene> ScenesAbove(Func<IScene, bool> pred)
         {
             if (scenes.Count == 0)
@@ -319,36 +354,45 @@ namespace AgateLib.Scenes
 
             int bottomIndex = 0;
 
-            for (int i = scenes.Count - 1; i >= 0; i--)
+            lock (updateLock)
             {
-                if (pred(scenes[i]))
+                for (int i = scenes.Count - 1; i >= 0; i--)
                 {
-                    bottomIndex = i;
-                    break;
+                    if (pred(scenes[i]))
+                    {
+                        bottomIndex = i;
+                        break;
+                    }
                 }
-            }
 
-            for (int i = bottomIndex; i < scenes.Count; i++)
-                yield return scenes[i];
+                for (int i = bottomIndex; i < scenes.Count; i++)
+                    yield return scenes[i];
+            }
         }
 
         private void CheckForFinishedScenes()
         {
             bool activate = false;
 
-            finishedScenes.Clear();
-            finishedScenes.AddRange(scenes.Where(s => s.IsFinished));
+            lock (updateLock)
+	    {
+		    finishedScenes.Clear();
+	            finishedScenes.AddRange(scenes.Where(s => s.IsFinished));
+	}
 
             foreach (var scene in finishedScenes)
             {
-                if (scene is IDisposable disposable)
+                foreach (var scene in UpdateScenes.Where(s => s.IsFinished))
                 {
-                    disposable.Dispose();
+                    if (scene is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+
+                    activate |= scene == TopScene;
+
+                    Remove(scene);
                 }
-
-                activate |= scene == TopScene;
-
-                Remove(scene);
             }
 
             if (activate)

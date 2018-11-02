@@ -140,7 +140,7 @@ namespace BallBusterX
         public List<CFlash> flashes = new List<CFlash>();
         public List<Ball> balls = new List<Ball>();
         public List<CFadeBall> fadeBalls = new List<CFadeBall>();
-        public List<CPowerUp> powerups = new List<CPowerUp>();
+        public List<PowerUp> powerups = new List<PowerUp>();
         public List<CScoreByte> scoreBytes = new List<CScoreByte>();
 
         //List<CEnemy>			enemies;
@@ -763,7 +763,7 @@ namespace BallBusterX
             }
             else if (attractMode && lowestball > -1 && chasepowerup)
             {
-                diff = (int)((powerups[lowestball].x + powerups[lowestball].w / 2) - paddle.x );
+                diff = (int)((powerups[lowestball].x + powerups[lowestball].widthScale / 2) - paddle.x );
                 int sign = 0;
 
                 // check to see if the ball is left or right of the paddle
@@ -1411,7 +1411,7 @@ namespace BallBusterX
 
         private void powerUp(PowerupTypes effect)
         {
-            CPowerUp dummy = new CPowerUp(0, 0);
+            PowerUp dummy = new PowerUp(0, 0);
 
             dummy.setEffect(effect);
             dummy.icon = null;
@@ -1419,12 +1419,12 @@ namespace BallBusterX
             powerUp(dummy);
         }
 
-        private void powerUp(CPowerUp powerup)
+        private void powerUp(PowerUp powerup)
         {
             ApplyPowerUp(powerup, 0);
         }
 
-        private void ApplyPowerUp(CPowerUp powerup, int extraPoints)
+        private void ApplyPowerUp(PowerUp powerup, int extraPoints)
         {
             int scoreGain = 0;
             PowerupTypes effect = powerup.getEffect();
@@ -1717,18 +1717,16 @@ namespace BallBusterX
             // losing "good" or "bad" powerups
             if (blaster) scoreGain += 25;
             if (fireball) scoreGain += 25;
-            if (paddleWidth < 100) scoreGain -= 25;
-            if (paddleWidth > 100) scoreGain += 25;
-            if (paddleImbueV > basePaddleImbueV + 25) scoreGain -= 25;
+            if (paddle.PaddleSizeIndex > 0) scoreGain += 25 * paddle.PaddleSizeIndex;
+            if (paddle.PaddleSizeIndex < 0) scoreGain += 25 * -paddle.PaddleSizeIndex;
+            if (paddleImbueV > basePaddleImbueV + 25) scoreGain += 25;
             if (paddleImbueV < basePaddleImbueV - 25) scoreGain += 25;
             if (stickypaddle) scoreGain += 25;
             if (supersticky) scoreGain += 25;
             if (catchblue) scoreGain += 25;
-            if (catchred) scoreGain -= 25;
+            if (catchred) scoreGain += 25;
             if (pow) scoreGain += 25;
             if (smash) scoreGain += 25;
-
-            if (scoreGain < 1) scoreGain = 1;
 
             paddle.PaddleSizeIndex = 0;
 
@@ -1753,7 +1751,7 @@ namespace BallBusterX
             return scoreGain;
         }
 
-        private void TouchMysteryPowerup(CPowerUp powerup)
+        private void TouchMysteryPowerup(PowerUp powerup)
         {
             // this is worth 50 extra points, but we pass it to the actual powerup
             // so that the scorebyte that's displayed on the screen is the right
@@ -1763,8 +1761,8 @@ namespace BallBusterX
             // declare some local variables, so enclose in braces to 
             // avoid stupid warnings.
             {
-                CPowerUpList list = new CPowerUpList();
-                CPowerUp actual;
+                PowerUpList list = new PowerUpList();
+                PowerUp actual;
 
                 // build the list of available powerups.
                 BuildPowerUpList(list);
@@ -1839,12 +1837,12 @@ namespace BallBusterX
             }
         }
 
-        private void BuildPowerUpList(CPowerUpList pulist)
+        private void BuildPowerUpList(PowerUpList pulist)
         {
             // erase whatever's in the list now
             pulist.clear();
 
-            int shortenWidthBoost = 10 * paddle.PaddleSizeIndex;
+            int shortenWidthBoost = 0 * 10 * paddle.PaddleSizeIndex;
 
             // only list the powerups in the list that will actually have an effect
             if (paddleWidth < 200) pulist.addEffect(PowerupTypes.LARGEPADDLE, GetPUIcon(PowerupTypes.LARGEPADDLE), 100 - shortenWidthBoost);
@@ -2039,7 +2037,7 @@ namespace BallBusterX
 
         private void dropPowerUp(int myx, int myy, PowerupTypes type)
         {
-            CPowerUp pup = new CPowerUp(myx, myy);
+            PowerUp pup = new PowerUp(myx, myy);
 
             pup.setEffect(type);
             pup.icon = GetPUIcon(type);
@@ -2049,12 +2047,12 @@ namespace BallBusterX
 
         private void dropPowerUp(int myx, int myy, bool pointsonly)
         {
-            CPowerUp ppowerup;
+            PowerUp ppowerup;
             int set;
 
             if (pointsonly)
             {
-                ppowerup = new CPowerUp(myx, myy);
+                ppowerup = new PowerUp(myx, myy);
 
                 set = random.Next(50);
 
@@ -2065,7 +2063,7 @@ namespace BallBusterX
             }
             else
             {
-                CPowerUpList pulist = new CPowerUpList();
+                PowerUpList pulist = new PowerUpList();
 
                 BuildPowerUpList(pulist);
 
@@ -2083,7 +2081,7 @@ namespace BallBusterX
 
                 for (i = 0; i < powerups.Count; i++)
                 {
-                    CPowerUp mypowerup = powerups[i];
+                    PowerUp mypowerup = powerups[i];
 
                     bool hitpaddle = paddle.HitBox.Intersects(mypowerup.HitBox);
 
@@ -2093,7 +2091,7 @@ namespace BallBusterX
                     if (dying)
                         hitpaddle = false;
 
-                    bool powerupAlive = mypowerup.update(time);
+                    bool powerupAlive = mypowerup.Update(time);
 
                     if (mypowerup.y > 600)
                     {
@@ -2146,13 +2144,9 @@ namespace BallBusterX
 
         private void DrawPowerUps(SpriteBatch spriteBatch)
         {
-            for (int i = 0; i < powerups.Count; i++)
+            foreach(PowerUp pu in powerups)
             {
-                CPowerUp mypowerup = powerups[i];
-
-                mypowerup.icon.Color = mypowerup.Color;
-                mypowerup.icon.Scale = new Vector2(mypowerup.w, mypowerup.h);
-                mypowerup.icon.Draw(spriteBatch, mypowerup.position);
+                pu.Draw(spriteBatch);
             }
         }
 

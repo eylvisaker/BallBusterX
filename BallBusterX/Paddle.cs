@@ -56,6 +56,9 @@ namespace BallBusterX
             {
                 paddleSizeIndex = value;
 
+                if (paddleSizeIndex > 10) paddleSizeIndex = 10;
+                if (paddleSizeIndex < -5) paddleSizeIndex = -5;
+
                 targetWidth = StandardPaddleWidth + paddleSizeIndex * 10;
             }
         }

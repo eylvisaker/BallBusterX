@@ -21,17 +21,56 @@
 
 using AgateLib.Display.Sprites;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace BallBusterX
 {
-    public class CPowerUp
+    public class PowerUp
     {
+        private class PowerUpTrail
+        {
+            public Vector2 Position { get; set; }
+            public float LifeLeft = 1;
+            private Sprite icon;
+
+            public PowerUpTrail(Sprite icon)
+            {
+                this.icon = new Sprite(icon);
+            }
+
+            public void Update(GameTime time)
+            {
+                LifeLeft -= (float)time.ElapsedGameTime.TotalSeconds * 2;
+            }
+
+            public void Draw(SpriteBatch spriteBatch)
+            {
+                if (LifeLeft <= 0)
+                    return;
+
+                icon.Scale = new Vector2(LifeLeft, LifeLeft);
+                icon.Alpha = LifeLeft * 0.5f;
+
+                Vector2 drawPosition = Position;
+                drawPosition.X += (1 - LifeLeft) * icon.SpriteWidth * 0.5f;
+                drawPosition.Y += (1 - LifeLeft) * icon.SpriteWidth * 0.5f;
+
+                icon.Draw(spriteBatch, drawPosition);
+            }
+
+            public void Initialize(Vector2 position)
+            {
+                LifeLeft = 1;
+                Position = position;
+            }
+        }
+
         public double delay;
-        public float w, h;
-        public float r, g, b, a;
+        public float widthScale = 1, heightScale = 1;
+        public float alpha;
         public float extray;
         public Vector2 position, velocity;
 
@@ -41,12 +80,14 @@ namespace BallBusterX
         private PowerupTypes effect;
         private bool isred, isblue;
 
-        public CPowerUp(float myx, float myy)
+        private List<PowerUpTrail> trails = new List<PowerUpTrail>();
+        private float timeToDropTrail;
+        private const float TrailDropPeriod = 0.1f;
+
+        public PowerUp(float myx, float myy)
         {
             this.delay = 100;
-            this.w = this.h = 1.0f;
-            this.r = this.g = this.b = 1.0f;
-            this.a = 1.0f;
+            this.alpha = 1.0f;
 
             this.position = new Vector2(myx, myy);
             this.velocity = new Vector2(0, 100);
@@ -66,11 +107,19 @@ namespace BallBusterX
 
         public bool IsRed => isred;
         public bool IsBlue => isblue;
+        public Color Color => new Color(Color.White, alpha);
 
 
-        public virtual bool update(GameTime time)
+        public virtual bool Update(GameTime time)
         {
             float time_s = (float)time.ElapsedGameTime.TotalSeconds;
+
+            timeToDropTrail -= time_s;
+
+            foreach(var trail in trails)
+            {
+                trail.Update(time);
+            }
 
             if (this.effect != PowerupTypes.PU_NONE)
             {
@@ -81,35 +130,42 @@ namespace BallBusterX
 
                 this.velocity.Y += 300.0f * time_s;
 
+                if (timeToDropTrail <= 0)
+                {
+                    timeToDropTrail += TrailDropPeriod;
+                    PowerUpTrail trail;
+
+                    if (trails.FirstOrDefault()?.LifeLeft <= 0)
+                    {
+                        trail = trails.FirstOrDefault();
+                        trails.RemoveAt(0);
+                    }
+                    else
+                    {
+                        trail = new PowerUpTrail(icon);
+                    }
+
+                    trail.Initialize(this.position);
+                    trails.Add(trail);
+                }
+
                 return true;
             }
             else
             {
                 position.X -= 1.5f * time_s;
-                this.w += 3f * time_s;
-                this.h += 3f * time_s;
+                this.widthScale += 3f * time_s;
+                this.heightScale += 3f * time_s;
 
-                this.a -= 1f * time_s;
+                this.alpha -= 1f * time_s;
                 this.position.Y -= velocity.Y * time_s;
                 this.position.X += velocity.X * time_s;
                 this.extray -= (velocity.Y * 1.5f) * time_s;
 
-                if (this.a <= 0.0f) return false;
+                if (this.alpha <= 0.0f) return false;
             }
 
             return true;
-        }
-        public Color Color
-        {
-            get
-            {
-                return new Color(
-                    (int)(r * 255.0f),
-                    (int)(g * 255.0f),
-                    (int)(b * 255.0f),
-                    (int)(a * 255.0f)
-                    );
-            }
         }
 
         public void setEffect(PowerupTypes neweffect)
@@ -158,11 +214,23 @@ namespace BallBusterX
         {
             return effect;
         }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            foreach (PowerUpTrail trail in trails)
+            {
+                trail.Draw(spriteBatch);
+            }
+
+            icon.Color = Color;
+            icon.Scale = new Vector2(widthScale, heightScale);
+            icon.Draw(spriteBatch, position);
+        }
     }
 
-    internal class CPowerUpList
+    internal class PowerUpList
     {
-        public CPowerUpList()
+        public PowerUpList()
         {
             total = 0;
         }
@@ -199,7 +267,7 @@ namespace BallBusterX
             }
         }
 
-        public void AssignPowerup(out CPowerUp powerup, float x, float y, Random random)
+        public void AssignPowerup(out PowerUp powerup, float x, float y, Random random)
         {
             int roll = random.Next(data.Sum(d => d.weight));
             PUData sel = null;
@@ -218,11 +286,9 @@ namespace BallBusterX
 
             }
 
-
-            powerup = new CPowerUp(x, y);
+            powerup = new PowerUp(x, y);
             powerup.setEffect(sel.effect);
             powerup.icon = sel.icon;
-
         }
 
         private class PUData

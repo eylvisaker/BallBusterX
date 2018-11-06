@@ -112,6 +112,7 @@ namespace AgateLib.Scenes
         private readonly List<IScene> finishedScenes = new List<IScene>();
         private readonly Dictionary<IScene, SceneData> sceneData = new Dictionary<IScene, SceneData>();
 
+        private IScene topScene;
         private bool updating = false;
         private object updateLock = new object();
 
@@ -128,7 +129,7 @@ namespace AgateLib.Scenes
         /// <summary>
         /// Gets the top scene on the stack.
         /// </summary>
-        public IScene TopScene => scenes.Count > 0 ? scenes[scenes.Count - 1] : null;
+        public IScene TopScene => topScene;
 
         /// <summary>
         /// Gets the collection of scenes that will be updated each frame.
@@ -199,6 +200,8 @@ namespace AgateLib.Scenes
                 scenes.Add(scene);
 
                 sceneData.Add(scene, dataPool.GetOrDefault());
+
+                topScene = scene;
             }
 
             scene.SceneStack = this;
@@ -237,11 +240,14 @@ namespace AgateLib.Scenes
                 "Cannot remove a scene if it does not belong to the stack.");
 
             scene.SceneEnd();
-            scene.SceneStack = null;
-
+            
             lock (updateLock)
             {
+                scene.SceneStack = null;
                 scenes.Remove(scene);
+
+                topScene = scenes.LastOrDefault();
+
                 sceneData[scene].Dispose();
                 sceneData.Remove(scene);
             }
@@ -378,18 +384,18 @@ namespace AgateLib.Scenes
             {
                 finishedScenes.Clear();
                 finishedScenes.AddRange(scenes.Where(s => s.IsFinished));
-            }
 
-            foreach (var scene in finishedScenes)
-            {
-                if (scene is IDisposable disposable)
+                foreach (var scene in finishedScenes)
                 {
-                    disposable.Dispose();
+                    if (scene is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+
+                    activate |= scene == TopScene;
+
+                    Remove(scene);
                 }
-
-                activate |= scene == TopScene;
-
-                Remove(scene);
             }
 
             if (activate)

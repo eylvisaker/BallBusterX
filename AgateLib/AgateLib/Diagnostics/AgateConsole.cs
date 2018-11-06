@@ -20,13 +20,12 @@
 //    SOFTWARE.
 //
 
-using System;
-using System.Collections.Generic;
 using AgateLib.Diagnostics.CommandLibraries;
 using AgateLib.Diagnostics.Rendering;
 using AgateLib.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace AgateLib.Diagnostics
 {
@@ -37,13 +36,13 @@ namespace AgateLib.Diagnostics
 
     public interface IConsoleSetup : IConsole
     {
-        bool IsActive { get; }
+        bool IsOpen { get; }
 
         void Update(GameTime time);
 
         void Draw(GameTime time);
 
-        void AddVocabulary(IVocabulary vocabulary);
+        void AddCommands(IVocabulary vocabulary);
     }
 
     [Singleton]
@@ -51,10 +50,10 @@ namespace AgateLib.Diagnostics
     {
         private readonly IConsoleRenderer renderer;
         private readonly ConsoleShell shell = new ConsoleShell();
-        private readonly AgateLib.Input.KeyboardEvents keyboardInput 
-            = new AgateLib.Input.KeyboardEvents();
+        private readonly KeyboardEvents keyboardInput = new KeyboardEvents();
 
-        private bool suppressToggleKey;
+        private bool suppressToggleKey = true;
+        private bool ignoreNextToggleKey;
 
         public AgateConsole(IConsoleRenderer renderer)
         {
@@ -63,13 +62,16 @@ namespace AgateLib.Diagnostics
             renderer.State = shell.State;
 
             keyboardInput.KeyPress += KeyboardInput_KeyPress;
+            keyboardInput.KeyUp += KeyboardInput_KeyUp;
         }
+
+        public event Action ConsoleClosed;
 
         public ConsoleState State => shell.State;
 
         public Keys ToggleKey { get; set; } = Keys.OemTilde;
 
-        public bool IsActive { get; set; }
+        public bool IsOpen { get; private set; }
 
         /// <summary>
         /// Adds a vocabulary to the console.
@@ -77,9 +79,20 @@ namespace AgateLib.Diagnostics
         /// </summary>
         /// <param name="vocabulary">The IVocabulary object which has methods
         /// decorated with the ConsoleCommandAttribute.</param>
-        public void AddVocabulary(IVocabulary vocab)
+        public void AddCommands(IVocabulary vocab)
         {
-            shell.CommandLibraries.Add(new VocabularyCommands(vocab));
+            AddCommands(new VocabularyCommands(vocab));
+        }
+
+        /// <summary>
+        /// Adds a command library to the console.
+        /// An ICommandLibrary object provides full flexibility for the processing of user entered commands,
+        /// but is more complex to implement than an IVocabulary object.
+        /// </summary>
+        /// <param name="commands"></param>
+        public void AddCommands(ICommandLibrary commands)
+        {
+            shell.AddCommands(commands);
         }
 
         public void Draw(GameTime time)
@@ -89,17 +102,16 @@ namespace AgateLib.Diagnostics
 
         public void Update(GameTime time)
         {
-            CheckToggleKey();
-
             shell.Update(time);
 
-            if (IsActive)
+            if (IsOpen)
             {
                 keyboardInput.Update(time);
             }
 
             renderer.Update(time);
         }
+
 
         public void WriteLine(string text)
         {
@@ -108,7 +120,7 @@ namespace AgateLib.Diagnostics
 
         private void KeyboardInput_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (IsActive)
+            if (IsOpen)
             {
                 if (e.Key == ToggleKey && suppressToggleKey)
                     return;
@@ -117,37 +129,36 @@ namespace AgateLib.Diagnostics
             }
         }
 
-        private void CheckToggleKey()
+        private void KeyboardInput_KeyUp(object sender, KeyEventArgs e)
         {
-            // We avoid using the keyboardInput events here to avoid generating garbage when the 
-            // console window is closed.
-            var keyState = Keyboard.GetState();
-            bool toggleKeyPressed = keyState.IsKeyDown(ToggleKey);
-            bool escapeKeyPressed = keyState.IsKeyDown(Keys.Escape);
-
-            if (toggleKeyPressed && !suppressToggleKey)
+            if (e.Key == ToggleKey || e.Key == Keys.Escape)
             {
-                suppressToggleKey = true;
-
-                IsActive = !IsActive;
+                if (ignoreNextToggleKey)
+                {
+                    ignoreNextToggleKey = false;
+                }
+                else
+                {
+                    Close();
+                }
             }
-            else if (!toggleKeyPressed && suppressToggleKey)
-            {
-                suppressToggleKey = false;
-            }
+        }
 
-            if (escapeKeyPressed && IsActive)
-            {
-                IsActive = false;
-            }
+        public void Open(bool ignoreNextToggleKey = true)
+        {
+            this.ignoreNextToggleKey = ignoreNextToggleKey;
+            IsOpen = true;
+            State.DisplayMode = ConsoleDisplayMode.Full;
+        }
 
-            if (IsActive)
+        public void Close()
+        {
+            if (IsOpen)
             {
-                State.DisplayMode = ConsoleDisplayMode.Full;
-            }
-            else
-            {
+                IsOpen = false;
                 State.DisplayMode = ConsoleDisplayMode.RecentMessagesOnly;
+
+                ConsoleClosed?.Invoke();
             }
         }
     }

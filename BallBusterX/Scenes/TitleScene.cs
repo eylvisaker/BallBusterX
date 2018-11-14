@@ -133,28 +133,14 @@ namespace BallBusterX.Scenes
                 BeginGame?.Invoke(gameState);
             }
 
-            //if (mousex > 100 - 20 && mousex < 500 && mousey > 130 && mousey < 160)
-            //{
-            //    titlemode = "leveleditor";
-            //}
             if (mousex > 100 - 20 && mousex < 500 && mousey > 160 && mousey < 190)
             {
                 SceneStack.Remove(this);
             }
-            if (mousex > 100 - 20 && mousex < 500 && mousey > 190 && mousey < 220)
-            {
-                return;
-            }
-            if (mousex > 100 - 20 && mousex < 500 && mousey > 220 && mousey < 250)
+            if (mousex > 100 - 20 && mousex < 500 && mousey > 250 && mousey < 280)
             {
                 config.BackgroundScroll = !config.BackgroundScroll;
                 game.bgspeed = config.BackgroundScroll ? 50.0f : 0.0f;
-            }
-            if (mousex > 100 - 20 && mousex < 500 && mousey > 250 && mousey < 280)
-            {
-                //vsync = !vsync;
-
-                //Display.RenderState.WaitForVerticalBlank = vsync;
             }
             if (mousex > 100 - 20 && mousex < 500 && mousey > 280 && mousey < 320)
             {
@@ -169,7 +155,6 @@ namespace BallBusterX.Scenes
                     MediaPlayer.Stop();
                 }
             }
-
         }
 
         private void Mouse_MouseMove(object sender, MouseEventArgs e)
@@ -237,7 +222,6 @@ namespace BallBusterX.Scenes
 
             game.UpdateLevel(time);
             UpdateTitle(time);
-
 
             if (timeSinceMouseMove > 15000)
                 hideTitle = true;
@@ -373,38 +357,27 @@ namespace BallBusterX.Scenes
                     font.Color = Color.Yellow;
                 }
                 font.DrawText(spriteBatch, 100, 100, "[START THE GAME]");
-                font.Color = Color.White;
-                if (mousex > 100 - 20 && mousex < 500 && mousey > 130 && mousey < 160)
-                {
-                    font.Color = Color.Yellow;
-                }
-                font.DrawText(spriteBatch, 100, 130, "[LEVEL EDITOR]");
+                //font.Color = Color.White;
+                //if (mousex > 100 - 20 && mousex < 500 && mousey > 130 && mousey < 160)
+                //{
+                //    font.Color = Color.Yellow;
+                //}
+                //font.DrawText(spriteBatch, 100, 130, "[LEVEL EDITOR]");
                 font.Color = Color.White;
                 if (mousex > 100 - 20 && mousex < 500 && mousey > 160 && mousey < 190)
                 {
                     font.Color = Color.Yellow;
                 }
                 font.DrawText(spriteBatch, 100, 160, "[QUIT]");
-                font.Color = Color.White;
-                if (mousex > 100 - 20 && mousex < 500 && mousey > 190 && mousey < 220)
-                {
-                    font.Color = Color.Yellow;
-                }
-                font.DrawText(spriteBatch, 100, 190, "[Full Screen / Windowed]");
-                font.Color = Color.White;
-                if (mousex > 100 - 20 && mousex < 500 && mousey > 220 && mousey < 250)
-                {
-                    font.Color = Color.Yellow;
-                }
-                if (config.BackgroundScroll) font.DrawText(spriteBatch, 100, 220, "[Background Scroll On]");
-                if (!config.BackgroundScroll) font.DrawText(spriteBatch, 100, 220, "[Background Scroll Off]");
+
                 font.Color = Color.White;
                 if (mousex > 100 - 20 && mousex < 500 && mousey > 250 && mousey < 280)
                 {
                     font.Color = Color.Yellow;
                 }
-                //if (vsync) font.DrawText(100, 250, "[VSync On]");
-                //if (!vsync) font.DrawText(100, 250, "[VSync Off]");
+                if (config.BackgroundScroll) font.DrawText(spriteBatch, 100, 250, "[Background Scroll On]");
+                if (!config.BackgroundScroll) font.DrawText(spriteBatch, 100, 250, "[Background Scroll Off]");
+
                 font.Color = Color.White;
                 if (mousex > 100 - 20 && mousex < 500 && mousey > 280 && mousey < 310)
                 {
@@ -414,17 +387,15 @@ namespace BallBusterX.Scenes
                 if (!config.PlayMusic) font.DrawText(spriteBatch, 100, 280, "[Do not play Music]");
                 font.Color = Color.White;
 
-
                 // Draw high scores
-                font.DrawText(spriteBatch, 500, 100, "High scores");
-
+                font.DrawText(spriteBatch, 450, 100, "High scores");
 
                 for (int i = 0; i < highscores.Count; i++)
                 {
                     int Drawy = 150 + 25 * i;
 
-                    font.DrawText(spriteBatch, 500, Drawy, (i + 1).ToString() + ". ");
-                    font.DrawText(spriteBatch, 530, Drawy, highscores[i].name);
+                    font.DrawText(spriteBatch, 450, Drawy, (i + 1).ToString() + ". ");
+                    font.DrawText(spriteBatch, 480, Drawy, highscores[i].name);
                     font.DrawText(spriteBatch, 680, Drawy, (highscores[i].score).ToString());
                 }
 
@@ -436,7 +407,7 @@ namespace BallBusterX.Scenes
                 font.Color = Color.White;
 
                 font.DrawText(spriteBatch, 100, 540, "Ball: Buster, by Patrick Avella (C) 2004");
-                font.DrawText(spriteBatch, 100, 555, "Ball: Buster eXtreme modifications made by Erik Ylvisaker (C) 2004-8"); 
+                font.DrawText(spriteBatch, 100, 555, "Ball: Buster eXtreme by Erik Ylvisaker (C) 2004-18"); 
                 font.DrawText(spriteBatch, 100, 570, "Because Breaking Stuff is Fun");
             }
             else
@@ -454,7 +425,6 @@ namespace BallBusterX.Scenes
 
             font.Size = 14;
             font.DrawText(spriteBatch, 100, 500, $"Starting on level {(beginningWorld + 1)} - {beginningLevel + 1}");
-
 
             if (!hideTitle)
             {

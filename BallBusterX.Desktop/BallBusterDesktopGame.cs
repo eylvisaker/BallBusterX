@@ -21,6 +21,8 @@ namespace BallBusterX.Desktop
 
         public BallBusterDesktopGame(BBXConfig config)
         {
+            Config = config;
+
             graphics = new GraphicsDeviceManager(this);
 
             graphics.PreferredBackBufferWidth = 800;
@@ -30,10 +32,12 @@ namespace BallBusterX.Desktop
 
             Content.RootDirectory = "Content";
 
-            Config = config;
+
+            IsFixedTimeStep = true;
+            TargetElapsedTime = TimeSpan.FromMilliseconds(15);
         }
 
-        public BBXConfig Config { get; set; } = new BBXConfig();
+        public BBXConfig Config { get; }
 
         /// <summary>
         /// Allows the game to perform any initialization it needs to before starting to run.

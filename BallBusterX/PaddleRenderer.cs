@@ -52,32 +52,6 @@ namespace BallBusterX
                              paddle.Opacity, // using opacity for scale during death animation.
                              SpriteEffects.None,
                              0);
-
-            //Texture2D pad = img.paddle;
-
-            //int roundedWidth = (int)(paddle.Width + 0.5f);
-            //int leftWidth = roundedWidth / 2;
-            //int rightWidth = roundedWidth - leftWidth;
-
-            //pad.Scale = new Vector2(paddleOpacity, paddleOpacity);
-            //pad.Alpha = paddleOpacity;
-            //pad.RotationAngleDegrees = paddleRotationAngle;
-
-            //pad.SetRotationCenter(OriginAlignment.Center);
-            //pad.Draw(spriteBatch,
-            //         new Vector2(paddle.x, paddle.y + paddle.Height / 2));
-
-            //pad.SetRotationCenter(OriginAlignment.Center);
-
-            //pad.Draw(spriteBatch,
-            //         new Vector2(paddle.x + leftWidth, paddle.y + paddle.Height / 2));
-
-            // Uncomment this to see the hitbox for the paddle.
-            //if (!dying)
-            //{
-            //    FillRect(spriteBatch,
-            //        paddle.HitBox, new Color(44, 44, 00, 99));
-            //}
         }
 
         public void Update(GameTime gameTime)

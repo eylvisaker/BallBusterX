@@ -19,8 +19,10 @@ namespace BallBusterX.Scenes
 
         private GameState gameState;
         private IMouseEvents mouse;
-        private Point mousePos;
         private Song song;
+
+        private Point mousePos;
+        private Point mouseCenterPos = new Point(400, 300);
 
         public GameScene(GraphicsDevice graphicsDevice,
                          GameState gameState, 
@@ -104,12 +106,17 @@ namespace BallBusterX.Scenes
 
         private void Mouse_MouseMove(object sender, MouseEventArgs e)
         {
-            mousePos = e.MousePosition;
+            Vector2 delta = e.MousePosition.ToVector2() - mouseCenterPos.ToVector2();
 
-            if (!gameState.paused)
-            {
-                gameState.MouseMove(mousePos);
-            }
+            mousePos.X += (int)(delta.X + 0.5f);
+            mousePos.Y += (int)(delta.Y + 0.5f);
+
+            gameState.MouseMove(mousePos);
+
+            mousePos.X = (int)(gameState.paddle.x + 0.5f);
+            mousePos.Y = 400;
+
+            Mouse.SetPosition(mouseCenterPos.X, mouseCenterPos.Y);
         }
 
         protected override void OnUpdateInput(IInputState input)

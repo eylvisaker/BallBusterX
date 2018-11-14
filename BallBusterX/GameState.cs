@@ -109,12 +109,8 @@ namespace BallBusterX
         private const float maxPaddleImbueV = 1000.0f;
         private const float minPaddleImbueV = 200.0f;
 
-        public int paddleSizeIndex => paddle.PaddleSizeIndex;
         public float paddleWidth => paddle.Width;
-        public float paddleh => paddle.Height;
         public float paddlex => paddle.x;
-        public float paddleRotationAngle => paddle.RotationAngle;
-        public float paddleOpacity => paddle.Opacity;
 
         public float paddleVelocity;   // velocity that the paddle is moving.
         public float _paddleImbueV;        // velocity the paddle gives to the balls
@@ -203,7 +199,6 @@ namespace BallBusterX
         private CImage img;
         private float time_s;
         private LightParameters lights = new LightParameters();
-        private int paddleTargetWidth;
         private float ballCollisionSoundLimit;
         private readonly CSound snd;
         private readonly IContentProvider content;
@@ -916,7 +911,7 @@ namespace BallBusterX
                 if (deathAnimation <= 0)
                 {
                     paddle.Opacity -= 0.5f * time_s;
-                    paddle.RotationAngle += 720.0f * time_s;
+                    paddle.RotationAngle += 683 * time_s;
                     paddle.y -= 75 * time_s;
                     deathAnimation += 20;
                 }
@@ -2685,11 +2680,6 @@ namespace BallBusterX
 
             paddle.x = mousex;
             paddle.CheckEdge();
-
-            mousex = (int)(paddle.x + 0.5f);
-            mousey = 400;
-
-            Mouse.SetPosition(mousex, mousey);
         }
 
         public void MouseClick()

@@ -139,7 +139,7 @@ namespace BallBusterX
         public List<CBlockPart> blockparts = new List<CBlockPart>();
         public List<CFlash> flashes = new List<CFlash>();
         public List<Ball> balls = new List<Ball>();
-        public List<CFadeBall> fadeBalls = new List<CFadeBall>();
+        public List<FadeBall> fadeBalls = new List<FadeBall>();
         public List<PowerUp> powerups = new List<PowerUp>();
         public List<CScoreByte> scoreBytes = new List<CScoreByte>();
 
@@ -258,7 +258,7 @@ namespace BallBusterX
                 {
                     myball = balls[i];
 
-                    if (!myball.sticking)
+                    if (!myball.IsSticking)
                     {
                         //delete balls[i];
                         balls.RemoveAt(i);
@@ -267,7 +267,7 @@ namespace BallBusterX
                     }
                     else
                     {
-                        myball.stickTimeLeft_ms = 4000;
+                        myball.StickTimeLeft_ms = 4000;
                     }
 
                 }
@@ -284,7 +284,7 @@ namespace BallBusterX
 
                     float shift = balls.Count / 2.0f - i;
 
-                    myball.stickydifference = shift * shiftStep;
+                    myball.StickyDifference = shift * shiftStep;
 
                     SetBallVelocityFromContact(myball);
                 }
@@ -370,10 +370,10 @@ namespace BallBusterX
                 badBall = false;
 
                 myball = balls[j];
-                myball.update(time);
+                myball.Update(time);
 
 
-                if (myball.fireball)// && !myball.ballsticking)
+                if (myball.HasFireball)// && !myball.ballsticking)
                 {
                     if (myball.timeToNextFade_ms < 0)
                     {
@@ -385,32 +385,32 @@ namespace BallBusterX
 
 
                 // doing collision checks for bricks first to determine where the ball hit it.
-                if (myball.sticking == false)
+                if (myball.IsSticking == false)
                 {
 
                     int i;
 
-                    myball.bally += myball.ballvy * time_s;
+                    myball.Y += myball.VelocityY * time_s;
 
-                    myball.ballv = paddleImbueV;
-                    myball.checkVelocity();
+                    myball.Velocity = paddleImbueV;
+                    myball.CheckVelocity();
 
                     i = 0;
                     for (i = 0; i < blocks.Count; i++)
                     {
-                        if (blocks[i].collision(myball.ballx, myball.bally, myball.ballw, myball.ballh))
+                        if (blocks[i].collision(myball.X, myball.Y, myball.Width, myball.Height))
                         {
-                            if (myball.fireball == false || (
+                            if (myball.HasFireball == false || (
                                 blocks[i].mBlockType != CBlock.BlockType.Glass &&
                                 blocks[i].mBlockType != CBlock.BlockType.Wood))
                             {
-                                myball.ballvy = -myball.ballvy;
+                                myball.VelocityY = -myball.VelocityY;
 
                                 // position the ball outside the block
-                                if (myball.ballvy < 0)
-                                    myball.bally = blocks[i].gety(false) - myball.ballw - 1;
+                                if (myball.VelocityY < 0)
+                                    myball.Y = blocks[i].gety(false) - myball.Width - 1;
                                 else
-                                    myball.bally = blocks[i].gety(false) + blocks[i].Height + 1;
+                                    myball.Y = blocks[i].gety(false) + blocks[i].Height + 1;
 
                             }
                             verticalhit = true;
@@ -422,24 +422,24 @@ namespace BallBusterX
                         }
                     }
 
-                    myball.ballx += myball.ballvx * time_s;
+                    myball.X += myball.VelocityX * time_s;
 
                     // now the x axis
                     for (i = 0; i < blocks.Count; i++)
                     {
-                        if (blocks[i].collision(myball.ballx, myball.bally, myball.ballw, myball.ballh))
+                        if (blocks[i].collision(myball.X, myball.Y, myball.Width, myball.Height))
                         {
-                            if (!myball.fireball || (
+                            if (!myball.HasFireball || (
                                 blocks[i].mBlockType != CBlock.BlockType.Glass &&
                                 blocks[i].mBlockType != CBlock.BlockType.Wood))
                             {
-                                myball.ballvx = -myball.ballvx;
+                                myball.VelocityX = -myball.VelocityX;
 
                                 // position the ball outside the block
-                                if (myball.ballvx < 0)
-                                    myball.ballx = blocks[i].getx(false) - myball.ballw - 1;
+                                if (myball.VelocityX < 0)
+                                    myball.X = blocks[i].getx(false) - myball.Width - 1;
                                 else
-                                    myball.ballx = blocks[i].getx(false) + blocks[i].Width + 1;
+                                    myball.X = blocks[i].getx(false) + blocks[i].Width + 1;
 
                             }
 
@@ -461,7 +461,7 @@ namespace BallBusterX
                     {
                         if (k != j)
                         {
-                            if (myball.collideWith(balls[k]) && !transitionout)
+                            if (myball.CollideWith(balls[k]) && !transitionout)
                             {
                                 PlayBallCollisionSound();
                             }
@@ -475,19 +475,19 @@ namespace BallBusterX
                     for (int k = 0; k < balls.Count; k++)
                     {
                         // find balls that are close
-                        if (balls[k].bally < myball.bally - myball.ballw)
+                        if (balls[k].Y < myball.Y - myball.Width)
                             continue;
 
                         if (k != j)
                         {
-                            if (myball.collideWith(balls[k]))
+                            if (myball.CollideWith(balls[k]))
                             {
                                 if (!transitionout)
                                     PlayBallCollisionSound();
                             }
                         }
 
-                        if (balls[k].bally > myball.bally + myball.ballw)
+                        if (balls[k].Y > myball.Y + myball.Width)
                             break;
                     }
                 }
@@ -506,23 +506,23 @@ namespace BallBusterX
 				*/
 
                 // check the perimeter
-                if (myball.ballx < 60)
+                if (myball.X < 60)
                 {
-                    myball.ballvx = -myball.ballvx;
-                    myball.ballx = 60;
+                    myball.VelocityX = -myball.VelocityX;
+                    myball.X = 60;
                 }
-                if (myball.ballx + myball.ballw > 740)
+                if (myball.X + myball.Width > 740)
                 {
-                    myball.ballvx = -myball.ballvx;
-                    myball.ballx = 740 - myball.ballw;
+                    myball.VelocityX = -myball.VelocityX;
+                    myball.X = 740 - myball.Width;
                 }
-                if (myball.bally < 10 && !myball.sticking)
+                if (myball.Y < 10 && !myball.IsSticking)
                 {
-                    if (myball.ballvy < 0) myball.ballvy = -myball.ballvy;
+                    if (myball.VelocityY < 0) myball.VelocityY = -myball.VelocityY;
 
-                    myball.bally = 10;
+                    myball.Y = 10;
                 }
-                if (myball.bally > 600)
+                if (myball.Y > 600)
                 {
                     badBall = true;
 
@@ -536,17 +536,17 @@ namespace BallBusterX
                 // balls that are low
                 if (attractMode)
                 {
-                    if (myball.bally < paddle.HitBox.Bottom
+                    if (myball.Y < paddle.HitBox.Bottom
                         && !badBall
-                        && !myball.sticking
-                        && myball.ballvy > 0
-                        && myball.bally > 300)
+                        && !myball.IsSticking
+                        && myball.VelocityY > 0
+                        && myball.Y > 300)
                     {
                         if (lowestball == -1)
                             lowestball = j;
-                        else if ((600 - myball.bally) / myball.ballvy <
-                            (600 - balls[lowestball].bally) / balls[lowestball].ballvy
-                            && myball.ballvy > 0)
+                        else if ((600 - myball.Y) / myball.VelocityY <
+                            (600 - balls[lowestball].Y) / balls[lowestball].VelocityY
+                            && myball.VelocityY > 0)
                             lowestball = j;
                     }
                 }
@@ -555,11 +555,11 @@ namespace BallBusterX
                 if (supersticky)
                 {
 
-                    if (myball.ballvy > 0 || myball.bally > paddle.HitBox.Top)
+                    if (myball.VelocityY > 0 || myball.Y > paddle.HitBox.Top)
                     {
                         // exponentially decaying attraction.  Not realistic, but hopefully it looks nice
-                        float distx = paddle.x - myball.ballx;
-                        float disty = paddle.y - myball.bally;
+                        float distx = paddle.x - myball.X;
+                        float disty = paddle.y - myball.Y;
 
                         float dist = (float)Math.Sqrt(distx * distx + disty * disty);
 
@@ -568,27 +568,27 @@ namespace BallBusterX
 
                         // multiply by a normalized ball velocity, so the magnet has the
                         // same effect on slow balls as fast balls.
-                        dist = 0.8f * dist * (float)Math.Exp(-dist / 100) * myball.ballv / 400;
+                        dist = 0.8f * dist * (float)Math.Exp(-dist / 100) * myball.Velocity / 400;
 
 
-                        myball.ballvx += distx * dist;
-                        myball.ballvy += disty * dist;
+                        myball.VelocityX += distx * dist;
+                        myball.VelocityY += disty * dist;
 
-                        myball.checkVelocity();
+                        myball.CheckVelocity();
 
                     }
                 }
 
                 // if the ball is sticking, make sure to update it's position and 
                 // check to see if it should automagically be released.
-                if (myball.sticking)
+                if (myball.IsSticking)
                 {
-                    myball.ballx = paddle.x + myball.stickydifference;
-                    myball.bally = paddle.HitBox.Top - myball.ballh;
+                    myball.X = paddle.x + myball.StickyDifference;
+                    myball.Y = paddle.HitBox.Top - myball.Height;
                     
-                    if (myball.stickTimeLeft_ms <= 0 && !transitionout)
+                    if (myball.StickTimeLeft_ms <= 0 && !transitionout)
                     {
-                        myball.sticking = false;
+                        myball.IsSticking = false;
                         ballStickCount--;
                     }
 
@@ -596,7 +596,7 @@ namespace BallBusterX
                     {
                         if (random.NextDouble() < 0.1)
                         {
-                            myball.sticking = false;
+                            myball.IsSticking = false;
                             ballStickCount--;
                         }
 
@@ -607,21 +607,21 @@ namespace BallBusterX
                 // check the paddle
                 bool hit_paddle = true;
 
-                if (myball.ballx + myball.Radius < paddle.HitBox.Left) hit_paddle = false;
-                else if (myball.ballx - myball.Radius > paddle.HitBox.Right) hit_paddle = false;
-                else if (myball.bally + myball.Radius < paddle.HitBox.Top) hit_paddle = false;
-                else if (myball.bally - myball.Radius > paddle.HitBox.Bottom) hit_paddle = false;
+                if (myball.X + myball.Radius < paddle.HitBox.Left) hit_paddle = false;
+                else if (myball.X - myball.Radius > paddle.HitBox.Right) hit_paddle = false;
+                else if (myball.Y + myball.Radius < paddle.HitBox.Top) hit_paddle = false;
+                else if (myball.Y - myball.Radius > paddle.HitBox.Bottom) hit_paddle = false;
 
                 if (hit_paddle)
                 {
                     bool changeVY = SetBallVelocityFromContact(myball);
 
-                    if (changeVY && !myball.sticking)
+                    if (changeVY && !myball.IsSticking)
                     {
                         // check for powerups
                         if (fireball)
                         {
-                            myball.fireball = true;
+                            myball.HasFireball = true;
                         }
 
                         if (pow)
@@ -631,20 +631,20 @@ namespace BallBusterX
 
                         if (smash)
                         {
-                            myball.smash = true;
+                            myball.HasSmash = true;
                         }
                     }
 
 
                     // if you have the stick power up.....
-                    if ((stickypaddle && myball.sticking == false) ||
+                    if ((stickypaddle && myball.IsSticking == false) ||
                         (transitionout && ballStickCount == 0))
                     {
-                        myball.sticking = true;
+                        myball.IsSticking = true;
                         ballStickCount++;
 
-                        myball.stickydifference = myball.ballx - paddlex;
-                        myball.stickTimeLeft_ms = 4000;
+                        myball.StickyDifference = myball.X - paddlex;
+                        myball.StickTimeLeft_ms = 4000;
                     }
                 }
 
@@ -726,8 +726,8 @@ namespace BallBusterX
                 // the goal:  keep the paddle under the ball.
                 // force the computer to accelerate the paddle instead of just using
                 // something lame like paddlex = myball.ballx - 10
-                diff = (int)(balls[lowestball].ballx - paddle.x);
-                int vdiff = (int)(balls[lowestball].ballvx - attractvelocity);
+                diff = (int)(balls[lowestball].X - paddle.x);
+                int vdiff = (int)(balls[lowestball].VelocityX - attractvelocity);
                 int sign = 0;
 
                 // check to see if the ball is left or right of the paddle
@@ -744,7 +744,7 @@ namespace BallBusterX
                 // but make sure that we don't slow down if they are going towards each other
                 /*if (balls[lowestball].ballvx * attractvelocity < 0 && 
 					Math.Abs((int)(diff + vdiff * .01) < Math.Abs((int)(diff))) && sign == 0) // && Math.Abs(vdiff) > 15*/
-                if (balls[lowestball].ballvx * attractvelocity > 0)
+                if (balls[lowestball].VelocityX * attractvelocity > 0)
                 {
                     if (vdiff > 0)
                         attractvelocity += Math.Max(vdiff, 10);
@@ -828,15 +828,15 @@ namespace BallBusterX
         private bool SetBallVelocityFromContact(Ball myball)
         {
             // the difference between the centers divided by paddle length * 2 gives number between -1 and 1... kinda
-            float mydif = myball.ballx - paddlex;
+            float mydif = myball.X - paddlex;
             bool changeVY = false;
 
             // set the rotational velocity of the ball, so the surface of the ball
             // has the tangential velocity proportionate to that of the paddle.
             // negative sign because paddle is under the ball.
-            myball.AngularVelocity = -0.1f * 2 * paddleVelocity / myball.ballw * 180 / (float)(Math.PI);
+            myball.AngularVelocity = -0.1f * 2 * paddleVelocity / myball.Width * 180 / (float)(Math.PI);
 
-            changeVY = myball.ballvy > 0;
+            changeVY = myball.VelocityY > 0;
 
             mydif /= paddle.Width;
             mydif *= 2.0f;
@@ -848,9 +848,9 @@ namespace BallBusterX
             float angle = (float)Math.Asin(mydif);
 
             // apply new velocity....
-            myball.ballvy = -paddleImbueV * (float)Math.Cos(angle);
-            myball.ballvx = paddleImbueV * (float)Math.Sin(angle);
-            myball.ballv = paddleImbueV;
+            myball.VelocityY = -paddleImbueV * (float)Math.Cos(angle);
+            myball.VelocityX = paddleImbueV * (float)Math.Sin(angle);
+            myball.Velocity = paddleImbueV;
             return changeVY;
         }
 
@@ -948,7 +948,7 @@ namespace BallBusterX
         // function for sort to sort balls by y.
         private int ballcheck(Ball a, Ball b)
         {
-            return a.bally.CompareTo(b.bally);
+            return a.Y.CompareTo(b.Y);
         }
 
 
@@ -1069,7 +1069,7 @@ namespace BallBusterX
             {
                 Ball myball = balls[j];
 
-                if (myball.fireball)
+                if (myball.HasFireball)
                     ballimg = img.fireball;
                 else
                     ballimg = img.ball;
@@ -1077,8 +1077,8 @@ namespace BallBusterX
                 //ballimg.set_color(myball.color);
 
                 int spikes = myball.Spikes;
-                int ballx = (int)myball.ballx;
-                int bally = (int)myball.bally;
+                int ballx = (int)myball.X;
+                int bally = (int)myball.Y;
 
                 Vector2 ballCenter = myball.BallCenter;
 
@@ -1105,9 +1105,9 @@ namespace BallBusterX
                 ballimg.SetRotationCenter(OriginAlignment.Center);
                 ballimg.Draw(spriteBatch, ballCenter);
 
-                if (myball.smash)
+                if (myball.HasSmash)
                 {
-                    float offset = myball.ballw / 2 - img.smash.SpriteWidth / 2;
+                    float offset = myball.Width / 2 - img.smash.SpriteWidth / 2;
 
                     img.smash.DisplayAlignment = OriginAlignment.Center;
                     img.smash.SetRotationCenter(OriginAlignment.Center);
@@ -1172,7 +1172,7 @@ namespace BallBusterX
                 lights.SetLightEnable(i, true);
                 lights.SetLightPosition(i, new Vector3(ball.BallCenter, -1));
 
-                if (ball.fireball)
+                if (ball.HasFireball)
                 {
                     lights.SetLightColor(i, fireballColor);
                     lights.SetAttenuation(i, new Vector3(0.01f, 0.006f, 0.00018f));
@@ -1190,7 +1190,7 @@ namespace BallBusterX
 
         public void DeleteBall(int myball)
         {
-            if (balls[myball].sticking)
+            if (balls[myball].IsSticking)
                 ballStickCount--;
 
             balls.RemoveAt(myball);
@@ -1380,14 +1380,14 @@ namespace BallBusterX
 
             Ball myball = new Ball();
 
-            myball.stickydifference = offset;
-            myball.bally = paddle.HitBox.Top - myball.ballw;
-            myball.ballx = paddle.x + offset;
+            myball.StickyDifference = offset;
+            myball.Y = paddle.HitBox.Top - myball.Width;
+            myball.X = paddle.x + offset;
 
             SetBallVelocityFromContact(myball);
 
-            myball.fireball = fireball;
-            myball.smash = smash;
+            myball.HasFireball = fireball;
+            myball.HasSmash = smash;
 
             if (pow)
                 myball.Power++;
@@ -1533,8 +1533,8 @@ namespace BallBusterX
                     {
                         for (int i = 0; i < balls.Count; i++)
                         {
-                            if (balls[i].sticking)
-                                balls[i].fireball = true;
+                            if (balls[i].IsSticking)
+                                balls[i].HasFireball = true;
                         }
                     }
                     break;
@@ -1648,7 +1648,7 @@ namespace BallBusterX
                     {
                         for (int i = 0; i < balls.Count; i++)
                         {
-                            if (balls[i].sticking)
+                            if (balls[i].IsSticking)
                                 balls[i].Power++;
                         }
                     }
@@ -1663,8 +1663,8 @@ namespace BallBusterX
                     {
                         for (int i = 0; i < balls.Count; i++)
                         {
-                            if (balls[i].sticking)
-                                balls[i].smash = true;
+                            if (balls[i].IsSticking)
+                                balls[i].HasSmash = true;
                         }
                     }
 
@@ -1739,11 +1739,11 @@ namespace BallBusterX
                 {
                     Ball myball = balls[i];
 
-                    if (myball.sticking)
+                    if (myball.IsSticking)
                     {
-                        myball.fireball = false;
+                        myball.HasFireball = false;
                         myball.Power = 0;
-                        myball.smash = false;
+                        myball.HasSmash = false;
                     }
                 }
             }
@@ -1792,7 +1792,7 @@ namespace BallBusterX
                 Ball myball = balls[i];
                 Ball ball1, ball2;
 
-                if (myball.sticking)
+                if (myball.IsSticking)
                     continue;
 
                 ball1 = addBall(myball);
@@ -1807,32 +1807,32 @@ namespace BallBusterX
 
 
                 // come up with a unit vector that is perpendicular to the ball's velocity
-                float angle = (float)Math.Atan2(myball.ballvy, myball.ballvx);
+                float angle = (float)Math.Atan2(myball.VelocityY, myball.VelocityX);
                 float perpx, perpy;
 
                 perpx = (float)Math.Cos(angle + (float)(Math.PI / 2));
                 perpy = (float)Math.Sin(angle + (float)(Math.PI / 2));
 
                 // put the balls side by side.
-                ball1.ballx = myball.ballx + myball.ballw * 1.01f * perpx;
-                ball1.bally = myball.bally + myball.ballw * 1.01f * perpy;
+                ball1.X = myball.X + myball.Width * 1.01f * perpx;
+                ball1.Y = myball.Y + myball.Width * 1.01f * perpy;
 
-                ball2.ballx = myball.ballx - myball.ballw * 1.01f * perpx;
-                ball2.bally = myball.bally - myball.ballw * 1.01f * perpy;
+                ball2.X = myball.X - myball.Width * 1.01f * perpx;
+                ball2.Y = myball.Y - myball.Width * 1.01f * perpy;
 
                 // set the velocities
-                float vel = (float)Math.Pow(myball.ballvx, 2) + (float)Math.Pow(myball.ballvy, 2);
+                float vel = (float)Math.Pow(myball.VelocityX, 2) + (float)Math.Pow(myball.VelocityY, 2);
                 float boostAngle = (float)(Math.PI / 12);
                 vel = (float)Math.Sqrt(vel);
 
-                ball1.ballvx = vel * (float)Math.Cos(angle + boostAngle);
-                ball1.ballvy = vel * (float)Math.Sin(angle + boostAngle);
+                ball1.VelocityX = vel * (float)Math.Cos(angle + boostAngle);
+                ball1.VelocityY = vel * (float)Math.Sin(angle + boostAngle);
 
-                ball2.ballvx = vel * (float)Math.Cos(angle - boostAngle);
-                ball2.ballvy = vel * (float)Math.Sin(angle - boostAngle);
+                ball2.VelocityX = vel * (float)Math.Cos(angle - boostAngle);
+                ball2.VelocityY = vel * (float)Math.Sin(angle - boostAngle);
 
-                ball1.sticking = false;
-                ball2.sticking = false;
+                ball1.IsSticking = false;
+                ball2.IsSticking = false;
 
             }
         }
@@ -2176,7 +2176,7 @@ namespace BallBusterX
             if (fadeBalls.Count > ballLimit)
                 return;
 
-            CFadeBall fb = new CFadeBall(myball, random);
+            FadeBall fb = new FadeBall(myball, random);
 
             fadeBalls.Add(fb);
         }
@@ -2185,7 +2185,7 @@ namespace BallBusterX
         {
             for (int i = 0; i < fadeBalls.Count; i++)
             {
-                CFadeBall fb = fadeBalls[i];
+                FadeBall fb = fadeBalls[i];
 
                 if (fb.update(time) == false)
                 {
@@ -2199,7 +2199,7 @@ namespace BallBusterX
         {
             for (int i = 0; i < fadeBalls.Count; i++)
             {
-                CFadeBall fb = fadeBalls[i];
+                FadeBall fb = fadeBalls[i];
 
                 img.fireball.Alpha = fb.alpha;
                 img.fireball.RotationAngleDegrees = fb.angle;
@@ -2236,7 +2236,7 @@ namespace BallBusterX
             blocks[myblock].decreaseStr(myball.Damage);
 
             // if we have the fireball and the block is glass or wood, bust it up!
-            if (myball.fireball && (
+            if (myball.HasFireball && (
                 blocks[myblock].mBlockType == CBlock.BlockType.Glass ||
                 blocks[myblock].mBlockType == CBlock.BlockType.Wood))
             {
@@ -2246,7 +2246,7 @@ namespace BallBusterX
             checkBlock(myblock, myball);
 
             // if we have the smash powerup, we need to do splash damage
-            if (myball.smash)
+            if (myball.HasSmash)
             {
                 for (int i = 0; i < blocks.Count; i++)
                 {
@@ -2379,7 +2379,7 @@ namespace BallBusterX
             if (blocks[myblock].getStr() <= 0)
             {
                 dropBlockParts(blocks[myblock].getx(), blocks[myblock].gety(), blocks[myblock].block,
-                    blocks[myblock].clr, myball.ballvx, myball.ballvy);
+                    blocks[myblock].clr, myball.VelocityX, myball.VelocityY);
 
                 if (playSound)
                     snd.shatter.Play();
@@ -2392,7 +2392,7 @@ namespace BallBusterX
                 {
                     scoreGain = 11 - balls.Count;
 
-                    if (myball.fireball)
+                    if (myball.HasFireball)
                         scoreGain -= 3;
 
                     if (paddleWidth > 110)
@@ -2435,7 +2435,7 @@ namespace BallBusterX
             {
 
                 // shake the block, if we have the smash powerup
-                if (myball.smash)
+                if (myball.HasSmash)
                 {
                     blocks[myblock].shake();
                 }
@@ -2696,9 +2696,9 @@ namespace BallBusterX
         {
             for (int i = 0; i < balls.Count; i++)
             {
-                if (balls[i].sticking)
+                if (balls[i].IsSticking)
                 {
-                    balls[i].sticking = false;
+                    balls[i].IsSticking = false;
                     //balls[i].bally -= blockscrolly;	// correct for paddle moving up
                     ballStickCount--;
                 }

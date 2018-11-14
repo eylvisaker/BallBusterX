@@ -24,9 +24,9 @@ using System;
 
 namespace BallBusterX
 {
-    public class CFadeBall
+    public class FadeBall
     {
-        public CFadeBall(Ball ball, Random random)
+        public FadeBall(Ball ball, Random random)
         {
             alpha = 0.75f;
 
@@ -45,9 +45,8 @@ namespace BallBusterX
             vx = random.Next(-max, max + 1);
             vy = random.Next(-max, max + 1);
 
-            if (ball.sticking)
+            if (ball.IsSticking)
                 vy += -45;
-
         }
 
         public float x, y;
@@ -80,10 +79,7 @@ namespace BallBusterX
             x += vx * time_s;
             y += vy * time_s;
 
-
             return true;
         }
-
-
     }
 }

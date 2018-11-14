@@ -13,10 +13,12 @@ namespace BallBusterX.Desktop
         [STAThread]
         static void Main(string[] args)
         {
-            using (var game = new BallBusterDesktopGame())
-            {
-                game.Config.ParseArgs(args);
+            var config = new BBXConfig();
 
+            config.ParseArgs(args);
+
+            using (var game = new BallBusterDesktopGame(config))
+            {
                 game.Run();
             }
         }

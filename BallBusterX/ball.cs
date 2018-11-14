@@ -37,52 +37,52 @@ namespace BallBusterX
         /// </summary>
         public Ball()
         {
-            this.ballx = this.bally = -10;
-            this.ballvx = 50.0f;
-            this.ballvy = -120.0f;
-            this.ballv = 130.0f;
+            this.X = this.Y = -10;
+            this.VelocityX = 50.0f;
+            this.VelocityY = -120.0f;
+            this.Velocity = 130.0f;
             this.Angle = 0;
             this.AngularVelocity = 45;
 
-            this.sticking = true;
-            this.stickydifference = 50;
-            this.stickTimeLeft_ms = 4000;
+            this.IsSticking = true;
+            this.StickyDifference = 50;
+            this.StickTimeLeft_ms = 4000;
 
-            fireball = false;
-            smash = false;
+            HasFireball = false;
+            HasSmash = false;
         }
 
         public Ball(Ball ball)
         {
-            this.ballx = ball.ballx;
-            this.bally = ball.bally;
-            this.ballvx = ball.ballvx;
-            this.ballvy = ball.ballvy;
-            this.ballv = ball.ballv;
+            this.X = ball.X;
+            this.Y = ball.Y;
+            this.VelocityX = ball.VelocityX;
+            this.VelocityY = ball.VelocityY;
+            this.Velocity = ball.Velocity;
             this.Angle = ball.Angle;
             this.AngularVelocity = ball.AngularVelocity;
 
-            this.fireball = ball.fireball;
+            this.HasFireball = ball.HasFireball;
             this.power = ball.power;
-            this.smash = ball.smash;
+            this.HasSmash = ball.HasSmash;
 
-            this.sticking = ball.sticking;
-            this.stickydifference = ball.stickydifference;
-            this.stickTimeLeft_ms = ball.stickTimeLeft_ms;
+            this.IsSticking = ball.IsSticking;
+            this.StickyDifference = ball.StickyDifference;
+            this.StickTimeLeft_ms = ball.StickTimeLeft_ms;
         }
 
         public int Damage => baseDamage + power * powDamageIncrement;
 
-        public float ballw => 10;
-        public float ballh => 10;
+        public float Width => 10;
+        public float Height => 10;
         public float Radius => 5;
 
-        public float ballx, bally;
-        public float ballvx, ballvy, ballv; // velocity
+        public float X, Y;
+        public float VelocityX, VelocityY, Velocity;
         public float SmashAngle;
         public float SmashAngleV = 1200;
 
-        public Vector2 BallCenter => new Vector2(ballx + ballw / 2, bally + ballh / 2);
+        public Vector2 BallCenter => new Vector2(X + Width / 2, Y + Height / 2);
 
         public float Angle { get; set; }
 
@@ -90,13 +90,13 @@ namespace BallBusterX
 
         public double timeToNextFade_ms;
 
-        public bool fireball;
-        public bool smash;
+        public bool HasFireball;
+        public bool HasSmash;
 
 
-        public bool sticking;
-        public float stickydifference;
-        public double stickTimeLeft_ms;
+        public bool IsSticking;
+        public float StickyDifference;
+        public double StickTimeLeft_ms;
 
         /// <summary>
         /// Gets the number of damage powerups this ball has.
@@ -123,36 +123,36 @@ namespace BallBusterX
             }
         }
 
-        public Rectangle HitBox => new Rectangle((int)ballx, (int)bally, (int)ballw, (int)ballh);
+        public Rectangle HitBox => new Rectangle((int)X, (int)Y, (int)Width, (int)Height);
 
         /// <summary>
         /// checks to make sure balls velocity is ballv
         /// </summary>
         /// <returns></returns>
-        public bool checkVelocity()
+        public bool CheckVelocity()
         {
-            float velmag = (float)Math.Sqrt(ballvx * ballvx + ballvy * ballvy);
-            float velscale = ballv / velmag;
+            float velmag = (float)Math.Sqrt(VelocityX * VelocityX + VelocityY * VelocityY);
+            float velscale = Velocity / velmag;
 
-            if (velmag == ballv)
+            if (velmag == Velocity)
                 return false;
 
-            ballvx *= velscale;
-            ballvy *= velscale;
+            VelocityX *= velscale;
+            VelocityY *= velscale;
 
             return true;
 
         }
 
-        public void update(GameTime time)
+        public void Update(GameTime time)
         {
             float time_s = (float)time.ElapsedGameTime.TotalSeconds;
             float time_ms = time_s * 1000;
 
-            stickTimeLeft_ms -= time_ms;
+            StickTimeLeft_ms -= time_ms;
             timeToNextFade_ms -= time_ms;
 
-            if (!sticking)
+            if (!IsSticking)
                 Angle += AngularVelocity * time_s;
 
             if (Angle > 360) Angle -= 360.0f;
@@ -162,19 +162,19 @@ namespace BallBusterX
 
             if (SmashAngle > 360) SmashAngle -= 360;
 
-            if (Math.Abs(ballvy) < 40)
+            if (Math.Abs(VelocityY) < 40)
             {
-                if (ballvy == 0) ballvy = 0.0001f;
-                ballvy += Math.Sign(ballvy) * 25 * time_s;
+                if (VelocityY == 0) VelocityY = 0.0001f;
+                VelocityY += Math.Sign(VelocityY) * 25 * time_s;
             }
-            if (Math.Abs(ballvx) < 40)
+            if (Math.Abs(VelocityX) < 40)
             {
-                if (ballvx == 0) ballvx = 0.0001f;
-                ballvx += Math.Sign(ballvx) * 25 * time_s;
+                if (VelocityX == 0) VelocityX = 0.0001f;
+                VelocityX += Math.Sign(VelocityX) * 25 * time_s;
             }
         }
 
-        public bool collideWith(Ball otherBall)
+        public bool CollideWith(Ball otherBall)
         {
             // obviously, we don't want to collide with ourself
             if (otherBall == this)
@@ -184,8 +184,8 @@ namespace BallBusterX
             float displacementX, displacementY;     // two component displacement vector
 
             // get the displacement vector
-            displacementX = otherBall.ballx - ballx;
-            displacementY = otherBall.bally - bally;
+            displacementX = otherBall.X - X;
+            displacementY = otherBall.Y - Y;
 
             // just in case they happen to be at the exact same spot
             if (displacementX == 0 && displacementY == 0)
@@ -195,13 +195,13 @@ namespace BallBusterX
 
 
             // don't collide with balls that are stuck if we are moving up
-            if (sticking && otherBall.ballvy < 0)
+            if (IsSticking && otherBall.VelocityY < 0)
                 return false;
-            else if (ballvy < 0 && otherBall.sticking)
+            else if (VelocityY < 0 && otherBall.IsSticking)
                 return false;
 
             // check to see if actual collision
-            else if (displacementSqr < ballw * ballw && displacementSqr > 1)
+            else if (displacementSqr < Width * Width && displacementSqr > 1)
             {
                 // yep, we collided.  Now we want to calculate to collision.
                 // the algorithm is: the balls exchange velocities in the direction of the displacement
@@ -224,12 +224,12 @@ namespace BallBusterX
 
                 // take the scalar product of the normalized displacement vector with the velocity;
                 // this gives me the projection of the velocity onto the displacement.
-                thisVParallel = displacementX * ballvx + displacementY * ballvy;
-                otherVParallel = displacementX * otherBall.ballvx + displacementY * otherBall.ballvy;
+                thisVParallel = displacementX * VelocityX + displacementY * VelocityY;
+                otherVParallel = displacementX * otherBall.VelocityX + displacementY * otherBall.VelocityY;
 
                 // same for the perpendicular velocity
-                thisVPerp = perpX * ballvx + perpY * ballvy;
-                otherVPerp = perpX * otherBall.ballvx + perpY * otherBall.ballvy;
+                thisVPerp = perpX * VelocityX + perpY * VelocityY;
+                otherVPerp = perpX * otherBall.VelocityX + perpY * otherBall.VelocityY;
 
                 // now swap the parallel components.
                 float t;
@@ -239,18 +239,18 @@ namespace BallBusterX
                 otherVParallel = t;
 
                 // reconstruct the actual velocity vector
-                ballvx = thisVParallel * displacementX + thisVPerp * perpX;
-                ballvy = thisVParallel * displacementY + thisVPerp * perpY;
+                VelocityX = thisVParallel * displacementX + thisVPerp * perpX;
+                VelocityY = thisVParallel * displacementY + thisVPerp * perpY;
 
-                otherBall.ballvx = otherVParallel * displacementX + otherVPerp * perpX;
-                otherBall.ballvy = otherVParallel * displacementY + otherVPerp * perpY;
+                otherBall.VelocityX = otherVParallel * displacementX + otherVPerp * perpX;
+                otherBall.VelocityY = otherVParallel * displacementY + otherVPerp * perpY;
 
                 // now make sure the balls aren't touching
-                otherBall.ballx = ballx + displacementX * ballw;
-                otherBall.bally = bally + displacementY * ballh;
+                otherBall.X = X + displacementX * Width;
+                otherBall.Y = Y + displacementY * Height;
 
-                checkVelocity();
-                otherBall.checkVelocity();
+                CheckVelocity();
+                otherBall.CheckVelocity();
 
                 return true;
             }

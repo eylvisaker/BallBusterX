@@ -111,13 +111,13 @@ namespace BallBusterX
                     int i;
                     for (i = 0; i < balls.Count; i++)
                     {
-                        if (balls[i].sticking)
+                        if (balls[i].IsSticking)
                         {
                             // the formula is to keep the balls at the same ratio of distance
                             // from the edge of the paddle to the size of the paddle
-                            float oldPos = balls[i].stickydifference / oldWidth;
+                            float oldPos = balls[i].StickyDifference / oldWidth;
 
-                            balls[i].stickydifference = oldPos * Width;
+                            balls[i].StickyDifference = oldPos * Width;
                         }
 
                     }

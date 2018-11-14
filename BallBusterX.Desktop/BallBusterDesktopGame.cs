@@ -1,5 +1,4 @@
-﻿using System;
-using AgateLib;
+﻿using AgateLib;
 using AgateLib.Input;
 using AgateLib.Storage;
 using Autofac;
@@ -7,6 +6,7 @@ using BallBusterX.Scenes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace BallBusterX.Desktop
 {
@@ -15,19 +15,22 @@ namespace BallBusterX.Desktop
     /// </summary>
     public class BallBusterDesktopGame : Game
     {
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
+        private GraphicsDeviceManager graphics;
         private BBX bbx;
         private HighscoreCollection highscores;
 
-        public BallBusterDesktopGame()
+        public BallBusterDesktopGame(BBXConfig config)
         {
             graphics = new GraphicsDeviceManager(this);
 
             graphics.PreferredBackBufferWidth = 800;
             graphics.PreferredBackBufferHeight = 600;
 
+            graphics.IsFullScreen = !Config.Windowed;
+
             Content.RootDirectory = "Content";
+
+            Config = config;
         }
 
         public BBXConfig Config { get; set; } = new BBXConfig();

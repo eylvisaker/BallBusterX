@@ -18,7 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ContentDataModel\SpritesFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CSound.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)fadeball.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FadeBall.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)flash.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Highscore.cs" />

@@ -11,6 +11,7 @@ namespace BallBusterX
 
         public bool PlayMusic { get; set; } = true;
         public bool BackgroundScroll { get; set; } = true;
+        public bool Windowed { get; private set; }
 
         public void ParseArgs(string[] args)
         {
@@ -20,6 +21,10 @@ namespace BallBusterX
                 {
                     case "-nomusic":
                         PlayMusic = false;
+                        break;
+
+                    case "-window":
+                        Windowed = true;
                         break;
                 }
             }

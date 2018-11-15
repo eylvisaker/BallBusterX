@@ -22,9 +22,7 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace AgateLib.Input
 {
@@ -35,15 +33,20 @@ namespace AgateLib.Input
         GamePadState GamePadStateOf(PlayerIndex playerIndex);
 
         KeyboardState KeyboardState { get; }
+
+        MouseState MouseState { get; }
     }
 
     /// <summary>
     /// Implements IInputState by polling the hardware.
+    /// This will only poll hardware for states that are actually asked for,
+    /// and hardware will only be polled once per frame.
     /// </summary>
     public class InputState : IInputState
     {
-        Dictionary<PlayerIndex, GamePadState?> gamePads = new Dictionary<PlayerIndex, GamePadState?>();
-        KeyboardState? keyboardState;
+        private Dictionary<PlayerIndex, GamePadState?> gamePads = new Dictionary<PlayerIndex, GamePadState?>();
+        private KeyboardState? keyboardState;
+        private MouseState? mouseState;
 
         public GameTime GameTime { get; set; }
 
@@ -58,6 +61,17 @@ namespace AgateLib.Input
             }
         }
 
+        public MouseState MouseState
+        {
+            get
+            {
+                if (mouseState == null)
+                    mouseState = Mouse.GetState();
+
+                return mouseState.Value;
+            }
+        }
+
         internal void Initialize()
         {
             gamePads[PlayerIndex.One] = null;
@@ -65,6 +79,7 @@ namespace AgateLib.Input
             gamePads[PlayerIndex.Three] = null;
             gamePads[PlayerIndex.Four] = null;
             keyboardState = null;
+            mouseState = null;
         }
 
         /// <summary>

@@ -136,7 +136,7 @@ namespace AgateLib.Input
     /// <summary>
     /// Class which represents a gamepad.
     /// </summary>
-    public class GamePadInput : IGamePad
+    public class GamePadEvents : IGamePad
     {
         private static Buttons[] ButtonNames = (Buttons[])Enum.GetValues(typeof(Buttons));
 
@@ -147,13 +147,11 @@ namespace AgateLib.Input
         /// Constructs a Gamepad object and sets it to track a low-level joystick.
         /// </summary>
         /// <param name="playerIndex"></param>
-        /// <param name="keyMap"></param>
         /// <param name="gamePadGetState"></param>
         /// <param name="keyboardGetState"></param>
-        public GamePadInput(PlayerIndex playerIndex, KeyboardGamepadMap keyMap)
+        public GamePadEvents(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
-            KeyMap = keyMap;
         }
 
         public bool InvertLeftStickY { get; set; } = false;
@@ -279,12 +277,10 @@ namespace AgateLib.Input
                 new GamepadButtonEventArgs(button));
         }
         
-        public void Poll(IInputState inputState)
+        public void Update(IInputState inputState)
         {
             GamePadState oldState = state;
             state = inputState.GamePadStateOf(PlayerIndex);
-
-            ApplyKeyMap(ref state, inputState);
 
             foreach (var button in ButtonNames)
             {
@@ -306,51 +302,17 @@ namespace AgateLib.Input
                 RightStickChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        // Feature is disabled because it isn't working and has questionable value.
-        // If enabled, be sure to enable the unit tests.
-        private void ApplyKeyMap(ref GamePadState padState, IInputState inputState)
-        {
-            if (KeyMap == null)
-                return;
-
-            var keys = inputState.KeyboardState;
-
-            Buttons buttons = 0;
-
-            foreach (var button in ButtonNames)
-            {
-                if (padState.IsButtonDown(button))
-                {
-                    buttons |= button;
-                }
-            }
-
-            foreach (var key in KeyMap.Keys)
-            {
-                var map = KeyMap[key];
-
-                if (keys.IsKeyDown(key))
-                {
-                    var item = KeyMap[key];
-
-                    if (item.Button != 0)
-                    {
-                        buttons |= item.Button;
-                    }
-                }
-            }
-
-            padState = new GamePadState(
-                padState.ThumbSticks.Left,
-                padState.ThumbSticks.Right,
-                padState.Triggers.Left,
-                padState.Triggers.Right,
-                buttons);
-        }
-
         public bool IsButtonDown(Buttons button)
         {
             return state.IsButtonDown(button);
+        }
+    }
+
+    [Obsolete("Use GamePadInput instead.")]
+    public class GamePadInput : GamePadEvents
+    {
+        public GamePadInput(PlayerIndex playerIndex) : base(playerIndex)
+        {
         }
     }
 }

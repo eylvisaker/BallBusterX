@@ -88,7 +88,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Display\TextureBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Display\_Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Input\GamepadButtonEventArgs.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Input\GamePadInput.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Input\GamePadEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Input\InputState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Input\KeyboardGamepadMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Input\KeyboardEvents.cs" />

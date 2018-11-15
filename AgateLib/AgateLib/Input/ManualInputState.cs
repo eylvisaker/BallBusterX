@@ -26,11 +26,14 @@ namespace AgateLib.Input
             gamePadState[PlayerIndex.Four] = new GamePadState();
 
             KeyboardState = new KeyboardState();
+            MouseState = new MouseState();
         }
 
         public GameTime GameTime { get; set; }
 
         public KeyboardState KeyboardState { get; set; }
+
+        public MouseState MouseState { get; set; }
 
         public GamePadState GamePadStateOf(PlayerIndex playerIndex) => gamePadState[playerIndex];
 

@@ -12,6 +12,9 @@ namespace AgateLib.Input
         event EventHandler<MouseButtonEventArgs> MouseUp;
         event EventHandler<MouseEventArgs> MouseMove;
 
+        void Update(IInputState inputState);
+
+        [Obsolete("Use IInputState override instead.")]
         void Update(GameTime time);
     }
 
@@ -35,10 +38,23 @@ namespace AgateLib.Input
             this.window = window;
         }
 
+        public void Update(IInputState inputState)
+        {
+            Update(inputState.MouseState);
+        }
+
+        [Obsolete("Use IInputState override instead.")]
         public void Update(GameTime time)
         {
-            lastMouseState = mouseState;
-            mouseState = Mouse.GetState();
+            var mouseState = Mouse.GetState();
+
+            Update(mouseState);
+        }
+
+        private void Update(MouseState mouseState)
+        {
+            lastMouseState = this.mouseState;
+            this.mouseState = mouseState;
 
             eventArgs.MousePosition = ConstrainMousePosition(mouseState.Position);
             buttonEventArgs.MousePosition = ConstrainMousePosition(mouseState.Position);

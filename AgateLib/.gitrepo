@@ -6,6 +6,6 @@
 [subrepo]
 	remote = https://github.com/eylvisaker/AgateLib
 	branch = master
-	commit = b8cb8f8c3619f77de388a626d50d1470ae73b01a
-	parent = db8f5fac1a10b10e3bb767861e06ccc6bbf361c1
+	commit = 3e4c8f1ab3bc8a6b898a2eb33a9ce4658bc62f59
+	parent = d7325548b887c4d91fc2e4a79899ab4525ac5968
 	cmdver = 0.3.1

@@ -14,21 +14,23 @@ namespace BallBusterX.Scenes
         private readonly CSound snd;
         private readonly BBXConfig config;
         private readonly GraphicsDevice graphicsDevice;
-        private readonly KeyboardEvents keyboard;
         private readonly SpriteBatch spriteBatch;
 
+        private readonly KeyboardEvents keyboard;
+        private readonly IMouseEvents mouse;
+        private readonly GamePadEvents gamePad;
+
         private GameState gameState;
-        private IMouseEvents mouse;
         private Song song;
 
         private Point mousePos;
         private Point mouseCenterPos = new Point(400, 300);
 
         public GameScene(GraphicsDevice graphicsDevice,
-                         GameState gameState, 
-                         IMouseEvents mouse, 
-                         CImage img, 
-                         CSound snd, 
+                         GameState gameState,
+                         IMouseEvents mouse,
+                         CImage img,
+                         CSound snd,
                          BBXConfig config)
         {
             this.gameState = gameState;
@@ -38,6 +40,9 @@ namespace BallBusterX.Scenes
             this.snd = snd;
             this.config = config;
             this.spriteBatch = new SpriteBatch(graphicsDevice);
+
+            gamePad = new GamePadEvents(PlayerIndex.One);
+            gamePad.ButtonPressed += GamePad_ButtonPressed;
 
             mouse.MouseMove += Mouse_MouseMove;
             mouse.MouseDown += Mouse_MouseDown;
@@ -51,7 +56,7 @@ namespace BallBusterX.Scenes
         public event Action Pause;
         public event Action StageComplete;
 
-        private void Keyboard_KeyUp(object sender, KeyEventArgs e) 
+        private void Keyboard_KeyUp(object sender, KeyEventArgs e)
         {
             switch (e.Key)
             {
@@ -67,11 +72,29 @@ namespace BallBusterX.Scenes
 
                 case Keys.P:
                 case Keys.Pause:
-                    if (!gameState.transitionout)
-                    {
-                        Pause?.Invoke();
-                    }
+                    OnPause();
                     break;
+            }
+        }
+
+        private void OnPause()
+        {
+            if (!gameState.transitionout)
+            {
+                Pause?.Invoke();
+            }
+        }
+
+        private void GamePad_ButtonPressed(object sender, GamepadButtonEventArgs e)
+        {
+            if (e.Button == Buttons.Start)
+            {
+                OnPause();
+            }
+
+            if (e.Button == Buttons.A)
+            {
+                gameState.MouseClick();
             }
         }
 
@@ -113,6 +136,11 @@ namespace BallBusterX.Scenes
 
             gameState.MouseMove(mousePos);
 
+            ResetMousePosition();
+        }
+
+        private void ResetMousePosition()
+        {
             mousePos.X = (int)(gameState.paddle.x + 0.5f);
             mousePos.Y = 400;
 
@@ -121,14 +149,28 @@ namespace BallBusterX.Scenes
 
         protected override void OnUpdateInput(IInputState input)
         {
+            mouse.Update(input);
+            keyboard.Update(input);
+            gamePad.Update(input);
+
+            if (Math.Abs(gamePad.LeftStick.X) > 0.1f)
+            {
+                // Right trigger acts as an accelerator, left trigger acts as a brake.
+                float gpScale = 500 * (1 + 2 * gamePad.RightTrigger) * (1 - 0.8f * gamePad.LeftTrigger);
+
+                float amount = gamePad.LeftStick.X * gpScale * (float)input.GameTime.ElapsedGameTime.TotalSeconds;
+
+                mousePos.X += (int)(amount);
+
+                gameState.MouseMove(mousePos);
+
+                ResetMousePosition();
+            }
         }
 
         protected override void OnUpdate(GameTime time)
         {
             base.OnUpdate(time);
-
-            mouse.Update(time);
-            keyboard.Update(time);
 
             gameState.UpdateLevel(time);
 
